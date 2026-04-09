@@ -121,10 +121,18 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: env(safe-area-inset-top, 12px) 14px env(safe-area-inset-bottom, 10px);
-        max-width: 480px;
+        padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 16px);
+        max-width: 100%;
+        width: 100%;
         margin: 0 auto;
         gap: 0; /* 間距交給各子元素的 margin-bottom */
+      }
+      @media (min-width: 520px) {
+        #app {
+          max-width: 480px;
+          padding-left: 20px;
+          padding-right: 20px;
+        }
       }
 
       /* ── Header ── */
@@ -133,11 +141,11 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 0 8px;
+        padding: 12px 0 10px;
         flex-shrink: 0;
       }
       #header h1 {
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 400;
         letter-spacing: 0.28em;
         text-transform: uppercase;
@@ -145,14 +153,14 @@
       }
       #header-btns {
         display: flex;
-        gap: 6px;
+        gap: 8px;
       }
       .hdr-btn {
         background: none;
         border: 1px solid var(--linen);
-        border-radius: 18px;
-        padding: 3px 9px;
-        font-size: 10px;
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 12px;
         color: var(--tl);
         cursor: pointer;
         transition: all 0.3s;
@@ -169,20 +177,20 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 5px 11px;
+        padding: 9px 14px;
         background: rgba(255, 255, 255, 0.4);
         border: 1px solid rgba(255, 255, 255, 0.65);
-        border-radius: 10px;
+        border-radius: 12px;
         backdrop-filter: blur(6px);
         flex-shrink: 0;
-        margin-bottom: 6px;
+        margin-bottom: 10px;
       }
       body.dark-mode #weather-bar {
         background: rgba(30, 37, 53, 0.45);
         border-color: rgba(255, 255, 255, 0.07);
       }
       #weather-icon {
-        font-size: 16px;
+        font-size: 20px;
         line-height: 1;
       }
       #weather-info {
@@ -192,29 +200,41 @@
         align-items: baseline;
       }
       #weather-main {
-        font-size: 12px;
+        font-size: 14px;
         color: var(--td);
       }
       #weather-tip {
-        font-size: 10px;
+        font-size: 12px;
         color: var(--tl);
       }
       #weather-loading {
-        font-size: 10px;
+        font-size: 12px;
         color: var(--tl);
         letter-spacing: 0.08em;
       }
 
       /* ── 場景 SVG (flex-shrink 允許縮小) ── */
       #scene {
-        width: 100%;
-        flex: 0 1 120px; /* 最多 120px，可縮小 */
-        min-height: 70px;
-        margin-bottom: 4px;
+        width: calc(100% + 32px);
+        margin-left: -16px;
+        margin-right: -16px;
+        flex: 0 1 160px;
+        min-height: 90px;
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+      @media (min-width: 520px) {
+        #scene {
+          width: 100%;
+          margin-left: 0;
+          margin-right: 0;
+          border-radius: 14px;
+        }
       }
       #scene-svg {
         width: 100%;
         height: 100%;
+        display: block;
       }
 
       /* 豆苗動畫 */
@@ -334,13 +354,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 16px;
+        gap: 24px;
         flex-shrink: 0;
-        margin-bottom: 5px;
+        margin-bottom: 10px;
       }
       #rhythm-orb {
-        width: 86px;
-        height: 86px;
+        width: 100px;
+        height: 100px;
         border-radius: 50%;
         flex-shrink: 0;
         background: radial-gradient(circle at 38% 35%, var(--sage), var(--moss));
@@ -350,7 +370,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 34px;
+        font-size: 40px;
         cursor: pointer;
         user-select: none;
         position: relative;
@@ -436,33 +456,32 @@
         opacity: 0.8;
       }
 
-      /* 右側面板：腳步燈 + mode tag + 呼吸 */
       #orb-right {
         display: flex;
         flex-direction: column;
-        gap: 7px;
+        gap: 9px;
         align-items: flex-start;
       }
       #footsteps {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
       }
       .foot-item {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 3px;
+        gap: 4px;
       }
       .foot-label {
-        font-size: 8px;
+        font-size: 10px;
         letter-spacing: 0.15em;
         color: var(--tl);
         text-transform: uppercase;
       }
       .foot-dot {
-        width: 13px;
-        height: 13px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         background: var(--linen);
         transition:
@@ -486,12 +505,13 @@
         background: var(--linen);
         margin: 0 2px;
       }
+      /* 右側面板：腳步燈 + mode tag + 呼吸 */
       #mode-tag {
-        font-size: 10px;
+        font-size: 12px;
         letter-spacing: 0.22em;
         text-transform: uppercase;
-        padding: 2px 9px;
-        border-radius: 16px;
+        padding: 4px 12px;
+        border-radius: 18px;
         background: rgba(122, 155, 118, 0.15);
         color: var(--moss);
         transition:
@@ -508,7 +528,7 @@
         color: var(--wu);
       }
       #breath-guide {
-        font-size: 10px;
+        font-size: 12px;
         letter-spacing: 0.28em;
         color: var(--tl);
         text-transform: uppercase;
@@ -518,18 +538,18 @@
       #orb-left {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 8px;
         align-items: center;
       }
       #sound-label {
-        font-size: 9px;
+        font-size: 11px;
         letter-spacing: 0.1em;
         color: var(--tl);
       }
       .sw {
         position: relative;
-        width: 32px;
-        height: 18px;
+        width: 38px;
+        height: 22px;
         cursor: pointer;
         display: inline-block;
       }
@@ -542,15 +562,15 @@
         position: absolute;
         inset: 0;
         background: var(--linen);
-        border-radius: 9px;
+        border-radius: 11px;
         transition: background 0.3s;
       }
       .sw-thumb {
         position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 14px;
-        height: 14px;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         background: #fff;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -560,7 +580,7 @@
         background: var(--moss);
       }
       .sw input:checked ~ .sw-thumb {
-        transform: translateX(14px);
+        transform: translateX(16px);
       }
       #weight-mini {
         display: flex;
@@ -569,14 +589,14 @@
         gap: 2px;
       }
       #weight-label-mini {
-        font-size: 8px;
+        font-size: 10px;
         color: var(--tl);
         letter-spacing: 0.05em;
       }
       #weight-input {
-        width: 38px;
+        width: 44px;
         text-align: center;
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 300;
         color: var(--td);
         background: transparent;
@@ -592,17 +612,17 @@
         background: rgba(255, 255, 255, 0.52);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.75);
-        border-radius: 11px;
-        padding: 7px 14px;
+        border-radius: 14px;
+        padding: 10px 18px;
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 2px;
+        gap: 3px;
         flex-shrink: 0;
-        margin-bottom: 5px;
-        min-height: 46px;
+        margin-bottom: 10px;
+        min-height: 56px;
         box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04);
       }
       body.dark-mode #task-card {
@@ -610,7 +630,7 @@
         border-color: rgba(255, 255, 255, 0.09);
       }
       #task-label {
-        font-size: 8px;
+        font-size: 10px;
         letter-spacing: 0.25em;
         color: var(--moss);
         text-transform: uppercase;
@@ -622,47 +642,47 @@
         color: var(--wu);
       }
       #task-text {
-        font-size: 13px;
+        font-size: 15px;
         color: var(--td);
-        line-height: 1.45;
+        line-height: 1.5;
       }
 
       /* ── 進度 ── */
       #progress-section {
         width: 100%;
         flex-shrink: 0;
-        margin-bottom: 5px;
+        margin-bottom: 10px;
       }
       #time-display {
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        margin-bottom: 5px;
+        margin-bottom: 7px;
       }
       #time-current {
-        font-size: 24px;
+        font-size: 30px;
         font-weight: 300;
         letter-spacing: 0.04em;
         color: var(--td);
         font-variant-numeric: tabular-nums;
       }
       #time-total {
-        font-size: 11px;
+        font-size: 13px;
         color: var(--tl);
         letter-spacing: 0.1em;
       }
       #progress-bar-wrap {
         width: 100%;
-        height: 4px;
+        height: 5px;
         background: var(--linen);
-        border-radius: 2px;
+        border-radius: 3px;
         position: relative;
         overflow: visible;
       }
       #progress-bar-fill {
         height: 100%;
         background: linear-gradient(90deg, var(--moss), var(--sage));
-        border-radius: 2px;
+        border-radius: 3px;
         width: 0%;
         transition: width 1s linear;
         position: relative;
@@ -670,19 +690,19 @@
       #progress-bar-fill::after {
         content: '';
         position: absolute;
-        right: -5px;
-        top: -4px;
-        width: 12px;
-        height: 12px;
+        right: -6px;
+        top: -5px;
+        width: 15px;
+        height: 15px;
         border-radius: 50%;
         background: var(--moss);
         box-shadow: 0 0 7px rgba(122, 155, 118, 0.6);
       }
       .seg-marker {
         position: absolute;
-        top: -3px;
+        top: -4px;
         width: 2px;
-        height: 10px;
+        height: 13px;
         border-radius: 1px;
         transform: translateX(-50%);
         transition: background 0.4s;
@@ -698,8 +718,8 @@
         background: var(--linen);
       }
       #phase-label {
-        margin-top: 5px;
-        font-size: 10px;
+        margin-top: 7px;
+        font-size: 12px;
         letter-spacing: 0.18em;
         color: var(--moss);
         text-transform: uppercase;
@@ -713,15 +733,15 @@
         width: 100%;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 5px;
+        gap: 7px;
         flex-shrink: 0;
-        margin-bottom: 6px;
+        margin-bottom: 10px;
       }
       .stat-card {
         background: rgba(255, 255, 255, 0.42);
         border: 1px solid rgba(255, 255, 255, 0.65);
-        border-radius: 9px;
-        padding: 6px 4px;
+        border-radius: 12px;
+        padding: 10px 6px;
         text-align: center;
         backdrop-filter: blur(5px);
       }
@@ -730,18 +750,18 @@
         border-color: rgba(255, 255, 255, 0.07);
       }
       .stat-value {
-        font-size: 17px;
+        font-size: 20px;
         font-weight: 300;
         color: var(--td);
         font-variant-numeric: tabular-nums;
         line-height: 1;
       }
       .stat-unit {
-        font-size: 7.5px;
+        font-size: 9px;
         letter-spacing: 0.12em;
         color: var(--tl);
         text-transform: uppercase;
-        margin-top: 2px;
+        margin-top: 3px;
       }
       #stat-kcal .stat-value {
         color: var(--bark);
@@ -751,18 +771,18 @@
       #controls {
         width: 100%;
         display: flex;
-        gap: 8px;
+        gap: 10px;
         flex-shrink: 0;
         padding-bottom: 4px;
       }
       #btn-start {
         flex: 1;
-        height: 48px;
+        height: 56px;
         border: none;
-        border-radius: 24px;
+        border-radius: 28px;
         background: linear-gradient(135deg, var(--moss), var(--sage));
         color: #fff;
-        font-size: 14px;
+        font-size: 16px;
         letter-spacing: 0.2em;
         cursor: pointer;
         transition: all 0.3s var(--ease);
@@ -776,13 +796,13 @@
         transform: translateY(0);
       }
       #btn-reset {
-        width: 48px;
-        height: 48px;
+        width: 56px;
+        height: 56px;
         border: 1px solid var(--linen);
         border-radius: 50%;
         background: transparent;
         color: var(--tl);
-        font-size: 16px;
+        font-size: 18px;
         cursor: pointer;
         transition: all 0.3s;
         display: flex;
@@ -1364,15 +1384,44 @@
         font-weight: 300;
       }
 
-      @media (max-height: 680px) {
+      @media (max-height: 720px) {
         #scene {
-          flex: 0 1 80px;
-          min-height: 60px;
+          flex: 0 1 100px;
+          min-height: 70px;
+        }
+        #rhythm-orb {
+          width: 84px;
+          height: 84px;
+          font-size: 32px;
+        }
+        #time-current {
+          font-size: 24px;
+        }
+        .stat-value {
+          font-size: 16px;
+        }
+        #btn-start {
+          height: 48px;
+          font-size: 14px;
+        }
+        #btn-reset {
+          width: 48px;
+          height: 48px;
+        }
+        #task-card {
+          min-height: 48px;
+          padding: 8px 14px;
+        }
+      }
+      @media (max-height: 620px) {
+        #scene {
+          flex: 0 1 70px;
+          min-height: 55px;
         }
         #rhythm-orb {
           width: 72px;
           height: 72px;
-          font-size: 28px;
+          font-size: 26px;
         }
         #time-current {
           font-size: 20px;
@@ -1543,7 +1592,7 @@
           id="scene-svg"
           viewBox="0 0 400 140"
           xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="xMidYMax meet"
+          preserveAspectRatio="xMidYMid slice"
         >
           <defs>
             <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
@@ -1571,7 +1620,7 @@
           </defs>
 
           <!-- 天空 -->
-          <rect x="0" y="0" width="400" height="115" fill="url(#skyGrad)" rx="10" />
+          <rect x="0" y="0" width="400" height="115" fill="url(#skyGrad)" rx="0" />
           <circle id="sun" cx="320" cy="34" r="20" fill="#F5C842" opacity=".85" />
           <ellipse id="cloud1" cx="80" cy="30" rx="32" ry="12" fill="rgba(255,255,255,.58)" />
           <ellipse id="cloud2" cx="195" cy="21" rx="26" ry="9" fill="rgba(255,255,255,.38)" />
