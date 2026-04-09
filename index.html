@@ -813,6 +813,127 @@
         border-color: var(--bark);
         color: var(--bark);
       }
+      #btn-end {
+        width: 56px;
+        height: 56px;
+        border: 1.5px solid rgba(180, 80, 60, 0.4);
+        border-radius: 50%;
+        background: transparent;
+        color: rgba(180, 80, 60, 0.7);
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 1px;
+        flex-shrink: 0;
+      }
+      #btn-end.visible {
+        display: flex;
+      }
+      #btn-end:hover {
+        border-color: rgba(180, 80, 60, 0.8);
+        color: rgba(180, 80, 60, 1);
+        background: rgba(180, 80, 60, 0.06);
+      }
+      #btn-end .end-icon {
+        font-size: 14px;
+        line-height: 1;
+      }
+      #btn-end .end-txt {
+        font-size: 9px;
+        letter-spacing: 0.08em;
+      }
+
+      /* 結束確認對話框 */
+      #end-confirm-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      #end-confirm-overlay.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #end-confirm-box {
+        background: var(--warm-white);
+        border: 1px solid var(--linen);
+        border-radius: 22px;
+        padding: 28px 28px 22px;
+        max-width: 320px;
+        width: calc(100% - 48px);
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        transform: scale(0.88) translateY(12px);
+        transition: transform 0.3s var(--ease);
+      }
+      #end-confirm-overlay.show #end-confirm-box {
+        transform: scale(1) translateY(0);
+      }
+      body.dark-mode #end-confirm-box {
+        background: var(--sand);
+        border-color: var(--linen);
+      }
+      #end-confirm-icon {
+        font-size: 38px;
+        margin-bottom: 10px;
+      }
+      #end-confirm-title {
+        font-size: 17px;
+        font-weight: 300;
+        color: var(--td);
+        margin-bottom: 6px;
+      }
+      #end-confirm-sub {
+        font-size: 12px;
+        color: var(--tl);
+        letter-spacing: 0.08em;
+        margin-bottom: 22px;
+        line-height: 1.7;
+      }
+      #end-confirm-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .ec-btn {
+        padding: 10px 22px;
+        border-radius: 22px;
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #ec-cancel {
+        border: 1px solid var(--linen);
+        background: transparent;
+        color: var(--tm);
+      }
+      #ec-cancel:hover {
+        border-color: var(--bark);
+        color: var(--bark);
+      }
+      #ec-confirm {
+        border: none;
+        background: linear-gradient(135deg, rgba(180, 80, 60, 0.85), rgba(200, 100, 80, 0.9));
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(180, 80, 60, 0.2);
+      }
+      #ec-confirm:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(180, 80, 60, 0.3);
+      }
 
       /* 鼓勵浮現 */
       #encourage {
@@ -1962,10 +2083,27 @@
       <!-- 按鈕 -->
       <div id="controls">
         <button id="btn-start">開 始</button>
+        <button id="btn-end" title="提前結束並記錄">
+          <span class="end-icon">⏹</span>
+          <span class="end-txt">結束</span>
+        </button>
         <button id="btn-reset">↺</button>
       </div>
     </div>
     <!-- /#app -->
+
+    <!-- 結束確認對話框 -->
+    <div id="end-confirm-overlay">
+      <div id="end-confirm-box">
+        <div id="end-confirm-icon">🏁</div>
+        <div id="end-confirm-title">確定要結束訓練？</div>
+        <div id="end-confirm-sub">將記錄目前的訓練時間<br />與完成輪次</div>
+        <div id="end-confirm-actions">
+          <button class="ec-btn" id="ec-cancel">繼續跑</button>
+          <button class="ec-btn" id="ec-confirm">結束並記錄</button>
+        </div>
+      </div>
+    </div>
 
     <script>
       // ================================================================
@@ -2169,6 +2307,8 @@
         spFootR: $('sp-foot-r'),
         spTail: $('sp-tail'),
         spSweat: $('sp-sweat'),
+        btnEnd: $('btn-end'),
+        endConfirmOverlay: $('end-confirm-overlay'),
       };
 
       // 段落標記
@@ -2826,6 +2966,7 @@
         animFrameId = requestAnimationFrame(tick);
         clearTimeout(encourageTimer);
         encourageTimer = setTimeout(showEncourage, 25000 + Math.random() * 25000);
+        dom.btnEnd.classList.add('visible');
       }
 
       function startPause() {
@@ -2943,6 +3084,7 @@
           m.classList.remove('run-done', 'rest-mark');
           m.classList.add('pending');
         });
+        dom.btnEnd.classList.remove('visible');
         updateUI(getSegmentInfo(0));
       }
 
@@ -3009,6 +3151,46 @@
       dom.btnStart.addEventListener('click', startPause);
       dom.btnReset.addEventListener('click', reset);
       dom.darkToggle.addEventListener('click', toggleDark);
+
+      // 結束按鈕：顯示確認對話框
+      dom.btnEnd.addEventListener('click', () => {
+        if (!isRunning && elapsed === 0) return;
+        // 先暫停
+        if (isRunning) {
+          isRunning = false;
+          cancelAnimationFrame(animFrameId);
+          clearTimeout(encourageTimer);
+          if (ytPlayer && ytReady)
+            try {
+              ytPlayer.pauseVideo();
+            } catch (e) {}
+          dom.btnStart.textContent = '繼 續';
+          dom.breathGuide.textContent = '暫停中';
+          dom.modeTag.textContent = '暫停';
+          dom.modeTag.className = 'mode-tag';
+          dom.sproutChar.classList.remove('running', 'resting');
+          dom.dotL.classList.remove('active-left');
+          dom.dotR.classList.remove('active-right');
+        }
+        dom.endConfirmOverlay.classList.add('show');
+      });
+
+      $('ec-cancel').addEventListener('click', () => {
+        dom.endConfirmOverlay.classList.remove('show');
+      });
+
+      $('ec-confirm').addEventListener('click', () => {
+        dom.endConfirmOverlay.classList.remove('show');
+        // 儲存紀錄
+        addRecord(
+          ~~(runElapsed / 60),
+          completedCycles,
+          beatCount >= 1000 ? (beatCount / 1000).toFixed(1) + 'k' : beatCount,
+          calcKcal(),
+          selectedMood
+        );
+        reset();
+      });
       dom.btnSkipWarmup.addEventListener('click', () => {
         clearTimeout(warmupTimer);
         warmupActive = false;
