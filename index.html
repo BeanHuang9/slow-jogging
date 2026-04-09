@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>超慢跑節奏訓練 · Slow Jog</title>
+
+    <link rel="icon" type="image/webp" href="assets/img/icon.webp" />
+    <link rel="apple-touch-icon" href="assets/img/icon.webp" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/icon.webp" />
+    <link rel="apple-touch-icon" href="assets/img/icon.webp" />
+
     <style>
       /* ── 變數 ── */
       :root {
@@ -1828,6 +1834,12 @@
             <div class="sw-track"></div>
             <div class="sw-thumb"></div>
           </label>
+          <div id="sound-label" style="margin-top: 4px">背景樂</div>
+          <label class="sw">
+            <input type="checkbox" id="music-toggle" checked />
+            <div class="sw-track"></div>
+            <div class="sw-thumb"></div>
+          </label>
           <div id="weight-mini">
             <div id="weight-label-mini">體重 kg</div>
             <input type="number" id="weight-input" value="60" min="30" max="150" />
@@ -2753,7 +2765,7 @@
         if (ytPlayer && ytReady)
           try {
             ytPlayer.seekTo(elapsed, true);
-            ytPlayer.playVideo();
+            if ($('music-toggle').checked) ytPlayer.playVideo();
           } catch (e) {}
         lastTimestamp = null;
         lastBeatTime = performance.now();
@@ -2778,7 +2790,7 @@
           if (ytPlayer && ytReady)
             try {
               ytPlayer.seekTo(elapsed, true);
-              ytPlayer.playVideo();
+              if ($('music-toggle').checked) ytPlayer.playVideo();
             } catch (e) {}
           lastTimestamp = null;
           lastBeatTime = performance.now();
@@ -3005,6 +3017,19 @@
           e.preventDefault();
           startPause();
         }
+      });
+
+      // 背景音樂開關
+      $('music-toggle').addEventListener('change', (e) => {
+        if (!ytPlayer || !ytReady) return;
+        try {
+          if (e.target.checked && isRunning) {
+            ytPlayer.seekTo(elapsed, true);
+            ytPlayer.playVideo();
+          } else {
+            ytPlayer.pauseVideo();
+          }
+        } catch (err) {}
       });
 
       updateUI(getSegmentInfo(0));
