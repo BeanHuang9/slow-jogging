@@ -1,0 +1,3013 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>超慢跑節奏訓練 · Slow Jog</title>
+    <style>
+      /* ── 變數 ── */
+      :root {
+        --cream: #f5f0e8;
+        --warm-white: #faf7f2;
+        --sand: #e8ddd0;
+        --linen: #d4c9b8;
+        --moss: #7a9b76;
+        --sage: #a8c4a0;
+        --bark: #8b6f5c;
+        --timber: #c4a882;
+        --td: #3a3228;
+        --tm: #6b5e52;
+        --tl: #9a8e84;
+        --rest: #7a8fa6;
+        --wu: #c4986a;
+        --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        --r: 12px;
+      }
+      body.dark-mode {
+        --cream: #1a1f2e;
+        --warm-white: #1e2535;
+        --sand: #252d3d;
+        --linen: #2e3848;
+        --moss: #5a8a76;
+        --sage: #4a7a66;
+        --bark: #8b7d6b;
+        --timber: #a08060;
+        --td: #e8e0d8;
+        --tm: #b0a898;
+        --tl: #7a7268;
+        --rest: #5a7a96;
+        --wu: #a07848;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        height: 100%;
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        height: 100dvh; /* ← 關鍵：固定視窗高度，不滾動 */
+        overflow: hidden;
+        font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans TC', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        background: linear-gradient(160deg, #f5edd8 0%, #e8d4b8 55%, #c8d8e8 100%);
+        color: var(--td);
+        transition:
+          background 3s var(--ease),
+          color 0.8s;
+      }
+      body.dark-mode {
+        background: linear-gradient(160deg, #0e1520 0%, #1a2030 55%, #1a2840 100%);
+      }
+      #bg-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.35;
+      }
+      .particle {
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0;
+        animation: floatUp linear infinite;
+      }
+      @keyframes floatUp {
+        0% {
+          opacity: 0;
+          transform: translateY(0);
+        }
+        10% {
+          opacity: 0.5;
+        }
+        90% {
+          opacity: 0.3;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-100vh);
+        }
+      }
+      #yt-container {
+        position: fixed;
+        bottom: -9px;
+        left: -9px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ═══════════════════════════════════
+   主 App — 全高 flex 列，不滾動
+   ═══════════════════════════════════ */
+      #app {
+        position: relative;
+        z-index: 10;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: env(safe-area-inset-top, 12px) 14px env(safe-area-inset-bottom, 10px);
+        max-width: 480px;
+        margin: 0 auto;
+        gap: 0; /* 間距交給各子元素的 margin-bottom */
+      }
+
+      /* ── Header ── */
+      #header {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0 8px;
+        flex-shrink: 0;
+      }
+      #header h1 {
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--tl);
+      }
+      #header-btns {
+        display: flex;
+        gap: 6px;
+      }
+      .hdr-btn {
+        background: none;
+        border: 1px solid var(--linen);
+        border-radius: 18px;
+        padding: 3px 9px;
+        font-size: 10px;
+        color: var(--tl);
+        cursor: pointer;
+        transition: all 0.3s;
+        letter-spacing: 0.1em;
+      }
+      .hdr-btn:hover {
+        border-color: var(--moss);
+        color: var(--moss);
+      }
+
+      /* ── 天氣列 ── */
+      #weather-bar {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 11px;
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        border-radius: 10px;
+        backdrop-filter: blur(6px);
+        flex-shrink: 0;
+        margin-bottom: 6px;
+      }
+      body.dark-mode #weather-bar {
+        background: rgba(30, 37, 53, 0.45);
+        border-color: rgba(255, 255, 255, 0.07);
+      }
+      #weather-icon {
+        font-size: 16px;
+        line-height: 1;
+      }
+      #weather-info {
+        flex: 1;
+        display: flex;
+        gap: 6px;
+        align-items: baseline;
+      }
+      #weather-main {
+        font-size: 12px;
+        color: var(--td);
+      }
+      #weather-tip {
+        font-size: 10px;
+        color: var(--tl);
+      }
+      #weather-loading {
+        font-size: 10px;
+        color: var(--tl);
+        letter-spacing: 0.08em;
+      }
+
+      /* ── 場景 SVG (flex-shrink 允許縮小) ── */
+      #scene {
+        width: 100%;
+        flex: 0 1 120px; /* 最多 120px，可縮小 */
+        min-height: 70px;
+        margin-bottom: 4px;
+      }
+      #scene-svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* 豆苗動畫 */
+      #sprout-char {
+        transform-origin: 200px 115px;
+      }
+      #sprout-char.running {
+        animation: spRun 0.38s ease-in-out infinite alternate;
+      }
+      @keyframes spRun {
+        0% {
+          transform: rotate(-6deg) translateY(0);
+        }
+        100% {
+          transform: rotate(6deg) translateY(-4px);
+        }
+      }
+      #sp-leaf-l {
+        transform-origin: 182px 68px;
+      }
+      #sp-leaf-r {
+        transform-origin: 218px 70px;
+      }
+      #sprout-char.running #sp-leaf-l {
+        animation: lL 0.76s ease-in-out infinite alternate;
+      }
+      #sprout-char.running #sp-leaf-r {
+        animation: lR 0.76s ease-in-out infinite alternate;
+      }
+      @keyframes lL {
+        0% {
+          transform: rotate(-18deg);
+        }
+        100% {
+          transform: rotate(10deg);
+        }
+      }
+      @keyframes lR {
+        0% {
+          transform: rotate(10deg);
+        }
+        100% {
+          transform: rotate(-18deg);
+        }
+      }
+      #sprout-char.resting {
+        animation: spRest 2s ease-in-out infinite alternate;
+      }
+      @keyframes spRest {
+        0% {
+          transform: scale(1);
+        }
+        100% {
+          transform: scale(1.04) translateY(-2px);
+        }
+      }
+      /* 搖擺尾巴（休息時顯示） */
+      #sp-tail {
+        transform-origin: 200px 122px;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      #sprout-char.resting #sp-tail {
+        opacity: 1;
+        animation: tailWag 0.6s ease-in-out infinite alternate;
+      }
+      @keyframes tailWag {
+        0% {
+          transform: rotate(-25deg);
+        }
+        100% {
+          transform: rotate(25deg);
+        }
+      }
+      /* 汗珠（跑步時顯示） */
+      #sp-sweat {
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      #sprout-char.running #sp-sweat {
+        opacity: 1;
+        animation: sweatDrop 1s ease-in infinite;
+      }
+      @keyframes sweatDrop {
+        0% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        80% {
+          opacity: 0.8;
+        }
+        100% {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+      }
+      /* 星星（完成時） */
+      #sp-stars {
+        opacity: 0;
+      }
+      #sprout-char.done #sp-stars {
+        opacity: 1;
+        animation: starPop 0.5s var(--ease) both;
+      }
+      @keyframes starPop {
+        0% {
+          transform: scale(0);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      /* ── 節奏球區（水平排列：球 + 腳步燈） ── */
+      #rhythm-center {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        flex-shrink: 0;
+        margin-bottom: 5px;
+      }
+      #rhythm-orb {
+        width: 86px;
+        height: 86px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: radial-gradient(circle at 38% 35%, var(--sage), var(--moss));
+        box-shadow:
+          0 0 0 0 rgba(122, 155, 118, 0.4),
+          0 6px 22px rgba(122, 155, 118, 0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        transition:
+          background 0.8s var(--ease),
+          box-shadow 0.8s var(--ease);
+      }
+      #rhythm-orb.rest-mode {
+        background: radial-gradient(circle at 38% 35%, #a8c4d8, var(--rest));
+        box-shadow:
+          0 0 0 0 rgba(122, 143, 166, 0.3),
+          0 6px 22px rgba(122, 143, 166, 0.15);
+      }
+      #rhythm-orb.warmup-mode {
+        background: radial-gradient(circle at 38% 35%, #e8d0a8, var(--wu));
+        box-shadow:
+          0 0 0 0 rgba(196, 152, 106, 0.3),
+          0 6px 22px rgba(196, 152, 106, 0.15);
+      }
+      #rhythm-orb.beat {
+        animation: orbBeat 0.36s var(--ease);
+      }
+      @keyframes orbBeat {
+        0% {
+          transform: scale(1);
+        }
+        40% {
+          transform: scale(1.12);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      #rhythm-orb.rest-mode.beat,
+      #rhythm-orb.warmup-mode.beat {
+        animation: orbSoft 0.8s var(--ease);
+      }
+      @keyframes orbSoft {
+        0% {
+          transform: scale(1);
+        }
+        40% {
+          transform: scale(1.04);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      #orb-overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s;
+      }
+      #orb-overlay.show {
+        opacity: 1;
+      }
+      #overlay-emoji {
+        font-size: 26px;
+        line-height: 1;
+      }
+      #overlay-countdown {
+        font-size: 16px;
+        font-weight: 300;
+        font-variant-numeric: tabular-nums;
+        color: var(--rest);
+      }
+      .warmup-mode #overlay-countdown {
+        color: var(--wu);
+      }
+      #overlay-label {
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--rest);
+        opacity: 0.8;
+      }
+
+      /* 右側面板：腳步燈 + mode tag + 呼吸 */
+      #orb-right {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        align-items: flex-start;
+      }
+      #footsteps {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .foot-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+      }
+      .foot-label {
+        font-size: 8px;
+        letter-spacing: 0.15em;
+        color: var(--tl);
+        text-transform: uppercase;
+      }
+      .foot-dot {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: var(--linen);
+        transition:
+          background 0.1s,
+          transform 0.1s,
+          box-shadow 0.1s;
+      }
+      .foot-dot.active-left {
+        background: var(--moss);
+        transform: translateY(-4px) scale(1.2);
+        box-shadow: 0 3px 10px rgba(122, 155, 118, 0.5);
+      }
+      .foot-dot.active-right {
+        background: var(--bark);
+        transform: translateY(-4px) scale(1.2);
+        box-shadow: 0 3px 10px rgba(139, 111, 92, 0.4);
+      }
+      .foot-sep {
+        width: 1px;
+        height: 18px;
+        background: var(--linen);
+        margin: 0 2px;
+      }
+      #mode-tag {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        padding: 2px 9px;
+        border-radius: 16px;
+        background: rgba(122, 155, 118, 0.15);
+        color: var(--moss);
+        transition:
+          background 0.5s,
+          color 0.5s;
+        white-space: nowrap;
+      }
+      #mode-tag.rest {
+        background: rgba(122, 143, 166, 0.15);
+        color: var(--rest);
+      }
+      #mode-tag.warmup {
+        background: rgba(196, 152, 106, 0.15);
+        color: var(--wu);
+      }
+      #breath-guide {
+        font-size: 10px;
+        letter-spacing: 0.28em;
+        color: var(--tl);
+        text-transform: uppercase;
+      }
+
+      /* 左側面板：聲音開關 */
+      #orb-left {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        align-items: center;
+      }
+      #sound-label {
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        color: var(--tl);
+      }
+      .sw {
+        position: relative;
+        width: 32px;
+        height: 18px;
+        cursor: pointer;
+        display: inline-block;
+      }
+      .sw input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .sw-track {
+        position: absolute;
+        inset: 0;
+        background: var(--linen);
+        border-radius: 9px;
+        transition: background 0.3s;
+      }
+      .sw-thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s;
+      }
+      .sw input:checked ~ .sw-track {
+        background: var(--moss);
+      }
+      .sw input:checked ~ .sw-thumb {
+        transform: translateX(14px);
+      }
+      #weight-mini {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      }
+      #weight-label-mini {
+        font-size: 8px;
+        color: var(--tl);
+        letter-spacing: 0.05em;
+      }
+      #weight-input {
+        width: 38px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 300;
+        color: var(--td);
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--linen);
+        outline: none;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ── 任務卡 ── */
+      #task-card {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.52);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        border-radius: 11px;
+        padding: 7px 14px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        flex-shrink: 0;
+        margin-bottom: 5px;
+        min-height: 46px;
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04);
+      }
+      body.dark-mode #task-card {
+        background: rgba(30, 37, 53, 0.65);
+        border-color: rgba(255, 255, 255, 0.09);
+      }
+      #task-label {
+        font-size: 8px;
+        letter-spacing: 0.25em;
+        color: var(--moss);
+        text-transform: uppercase;
+      }
+      #task-label.rest {
+        color: var(--rest);
+      }
+      #task-label.warmup {
+        color: var(--wu);
+      }
+      #task-text {
+        font-size: 13px;
+        color: var(--td);
+        line-height: 1.45;
+      }
+
+      /* ── 進度 ── */
+      #progress-section {
+        width: 100%;
+        flex-shrink: 0;
+        margin-bottom: 5px;
+      }
+      #time-display {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 5px;
+      }
+      #time-current {
+        font-size: 24px;
+        font-weight: 300;
+        letter-spacing: 0.04em;
+        color: var(--td);
+        font-variant-numeric: tabular-nums;
+      }
+      #time-total {
+        font-size: 11px;
+        color: var(--tl);
+        letter-spacing: 0.1em;
+      }
+      #progress-bar-wrap {
+        width: 100%;
+        height: 4px;
+        background: var(--linen);
+        border-radius: 2px;
+        position: relative;
+        overflow: visible;
+      }
+      #progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--moss), var(--sage));
+        border-radius: 2px;
+        width: 0%;
+        transition: width 1s linear;
+        position: relative;
+      }
+      #progress-bar-fill::after {
+        content: '';
+        position: absolute;
+        right: -5px;
+        top: -4px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--moss);
+        box-shadow: 0 0 7px rgba(122, 155, 118, 0.6);
+      }
+      .seg-marker {
+        position: absolute;
+        top: -3px;
+        width: 2px;
+        height: 10px;
+        border-radius: 1px;
+        transform: translateX(-50%);
+        transition: background 0.4s;
+      }
+      .seg-marker.run-done {
+        background: var(--moss);
+      }
+      .seg-marker.rest-mark {
+        background: var(--rest);
+        opacity: 0.6;
+      }
+      .seg-marker.pending {
+        background: var(--linen);
+      }
+      #phase-label {
+        margin-top: 5px;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        color: var(--moss);
+        text-transform: uppercase;
+      }
+      #phase-label.rest {
+        color: var(--rest);
+      }
+
+      /* ── 統計四欄 ── */
+      #stats-row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+        flex-shrink: 0;
+        margin-bottom: 6px;
+      }
+      .stat-card {
+        background: rgba(255, 255, 255, 0.42);
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        border-radius: 9px;
+        padding: 6px 4px;
+        text-align: center;
+        backdrop-filter: blur(5px);
+      }
+      body.dark-mode .stat-card {
+        background: rgba(30, 37, 53, 0.45);
+        border-color: rgba(255, 255, 255, 0.07);
+      }
+      .stat-value {
+        font-size: 17px;
+        font-weight: 300;
+        color: var(--td);
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+      }
+      .stat-unit {
+        font-size: 7.5px;
+        letter-spacing: 0.12em;
+        color: var(--tl);
+        text-transform: uppercase;
+        margin-top: 2px;
+      }
+      #stat-kcal .stat-value {
+        color: var(--bark);
+      }
+
+      /* ── 控制按鈕 ── */
+      #controls {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+        padding-bottom: 4px;
+      }
+      #btn-start {
+        flex: 1;
+        height: 48px;
+        border: none;
+        border-radius: 24px;
+        background: linear-gradient(135deg, var(--moss), var(--sage));
+        color: #fff;
+        font-size: 14px;
+        letter-spacing: 0.2em;
+        cursor: pointer;
+        transition: all 0.3s var(--ease);
+        box-shadow: 0 4px 16px rgba(122, 155, 118, 0.28);
+      }
+      #btn-start:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 7px 22px rgba(122, 155, 118, 0.38);
+      }
+      #btn-start:active {
+        transform: translateY(0);
+      }
+      #btn-reset {
+        width: 48px;
+        height: 48px;
+        border: 1px solid var(--linen);
+        border-radius: 50%;
+        background: transparent;
+        color: var(--tl);
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #btn-reset:hover {
+        border-color: var(--bark);
+        color: var(--bark);
+      }
+
+      /* 鼓勵浮現 */
+      #encourage {
+        position: fixed;
+        top: 36%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-16px);
+        background: rgba(122, 155, 118, 0.92);
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 24px;
+        font-size: 13px;
+        letter-spacing: 0.1em;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 100;
+        white-space: nowrap;
+        backdrop-filter: blur(8px);
+        transition:
+          opacity 0.6s,
+          transform 0.6s var(--ease);
+      }
+      #encourage.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      /* ═══════════════════════════════════
+   全螢幕覆蓋層（通用）
+   ═══════════════════════════════════ */
+      .fullscreen {
+        position: fixed;
+        inset: 0;
+        z-index: 300;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-y: auto;
+        padding: 32px 18px 48px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.7s var(--ease);
+      }
+      .fullscreen.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .fullscreen-inner {
+        width: 100%;
+        max-width: 460px;
+        margin: 0 auto;
+      }
+
+      /* 熱身 */
+      #warmup-screen {
+        background: linear-gradient(160deg, #f5edd8, #e8d4b8);
+      }
+      body.dark-mode #warmup-screen {
+        background: linear-gradient(160deg, #1a1f2e, #252d3d);
+      }
+      #warmup-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      #warmup-icon {
+        font-size: 44px;
+        margin-bottom: 8px;
+      }
+      #warmup-title {
+        font-size: 20px;
+        font-weight: 300;
+        color: var(--td);
+        margin-bottom: 4px;
+      }
+      #warmup-sub {
+        font-size: 12px;
+        color: var(--tm);
+      }
+      .warmup-step-card {
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        border-radius: 13px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        backdrop-filter: blur(6px);
+        transition: all 0.3s;
+      }
+      body.dark-mode .warmup-step-card {
+        background: rgba(30, 37, 53, 0.55);
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+      .warmup-step-card.active {
+        border-color: var(--wu);
+        box-shadow: 0 0 0 2px rgba(196, 152, 106, 0.18);
+      }
+      .warmup-step-emoji {
+        font-size: 24px;
+        width: 34px;
+        text-align: center;
+      }
+      .warmup-step-body {
+        flex: 1;
+      }
+      .warmup-step-name {
+        font-size: 13px;
+        color: var(--td);
+        margin-bottom: 2px;
+      }
+      .warmup-step-dur {
+        font-size: 10px;
+        color: var(--tl);
+        letter-spacing: 0.06em;
+      }
+      .warmup-step-prog {
+        height: 2px;
+        background: var(--linen);
+        border-radius: 1px;
+        margin-top: 6px;
+        overflow: hidden;
+      }
+      .warmup-step-bar {
+        height: 100%;
+        background: var(--wu);
+        border-radius: 1px;
+        width: 0%;
+        transition: width 0.5s linear;
+      }
+      #warmup-countdown {
+        text-align: center;
+        margin: 12px 0;
+        font-size: 36px;
+        font-weight: 200;
+        color: var(--wu);
+        font-variant-numeric: tabular-nums;
+      }
+      #btn-skip-warmup {
+        display: block;
+        margin: 0 auto;
+        padding: 10px 30px;
+        border: 1px solid var(--linen);
+        border-radius: 22px;
+        background: transparent;
+        color: var(--tl);
+        font-size: 12px;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #btn-skip-warmup:hover {
+        border-color: var(--wu);
+        color: var(--wu);
+      }
+
+      /* 伸展 */
+      #stretch-screen {
+        background: linear-gradient(160deg, #e8f0e0, #d8ecd8);
+      }
+      body.dark-mode #stretch-screen {
+        background: linear-gradient(160deg, #1a2420, #1e2e28);
+      }
+      #stretch-header {
+        text-align: center;
+        margin-bottom: 18px;
+      }
+      #stretch-icon {
+        font-size: 44px;
+        margin-bottom: 8px;
+      }
+      #stretch-title {
+        font-size: 20px;
+        font-weight: 300;
+        color: var(--td);
+        margin-bottom: 4px;
+      }
+      #stretch-sub {
+        font-size: 12px;
+        color: var(--tm);
+      }
+      .stretch-card {
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        border-radius: 13px;
+        padding: 14px 16px;
+        margin-bottom: 8px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        backdrop-filter: blur(6px);
+        transition: all 0.3s;
+      }
+      body.dark-mode .stretch-card {
+        background: rgba(20, 40, 30, 0.55);
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+      .stretch-card.active {
+        border-color: var(--moss);
+        box-shadow: 0 0 0 2px rgba(122, 155, 118, 0.15);
+      }
+      .stretch-emoji {
+        font-size: 26px;
+        width: 38px;
+        text-align: center;
+      }
+      .stretch-body {
+        flex: 1;
+      }
+      .stretch-name {
+        font-size: 13px;
+        color: var(--td);
+        font-weight: 400;
+        margin-bottom: 2px;
+      }
+      .stretch-desc {
+        font-size: 10px;
+        color: var(--tl);
+        line-height: 1.6;
+      }
+      .stretch-timer-bar {
+        height: 2px;
+        background: var(--linen);
+        border-radius: 1px;
+        margin-top: 7px;
+        overflow: hidden;
+      }
+      .stretch-timer-fill {
+        height: 100%;
+        background: var(--moss);
+        border-radius: 1px;
+        width: 0%;
+        transition: width 0.5s linear;
+      }
+      #stretch-countdown {
+        text-align: center;
+        margin: 12px 0;
+        font-size: 36px;
+        font-weight: 200;
+        color: var(--moss);
+        font-variant-numeric: tabular-nums;
+      }
+      #btn-skip-stretch {
+        display: block;
+        margin: 0 auto;
+        padding: 10px 30px;
+        border: 1px solid var(--linen);
+        border-radius: 22px;
+        background: transparent;
+        color: var(--tl);
+        font-size: 12px;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #btn-skip-stretch:hover {
+        border-color: var(--moss);
+        color: var(--moss);
+      }
+
+      /* 完成 */
+      #finish-screen {
+        background: linear-gradient(160deg, var(--warm-white), var(--sand));
+        text-align: center;
+        justify-content: flex-start;
+        padding-top: 48px;
+      }
+      body.dark-mode #finish-screen {
+        background: linear-gradient(160deg, #1e2535, #252d3d);
+      }
+      #finish-icon {
+        font-size: 56px;
+        margin-bottom: 12px;
+      }
+      #finish-title {
+        font-size: 24px;
+        font-weight: 300;
+        color: var(--td);
+        margin-bottom: 4px;
+      }
+      #finish-sub {
+        font-size: 12px;
+        color: var(--tm);
+        margin-bottom: 20px;
+      }
+      #finish-stats {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .fs-card {
+        text-align: center;
+        min-width: 62px;
+      }
+      .fs-val {
+        font-size: 30px;
+        font-weight: 200;
+        color: var(--moss);
+        font-variant-numeric: tabular-nums;
+      }
+      .fs-val.kcal {
+        color: var(--bark);
+      }
+      .fs-label {
+        font-size: 8px;
+        letter-spacing: 0.18em;
+        color: var(--tl);
+        text-transform: uppercase;
+        margin-top: 3px;
+      }
+      #mood-section {
+        margin-bottom: 20px;
+      }
+      #mood-title {
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        color: var(--tm);
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+      #mood-options {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .mood-btn {
+        background: rgba(255, 255, 255, 0.55);
+        border: 2px solid transparent;
+        border-radius: 13px;
+        padding: 8px 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        backdrop-filter: blur(5px);
+      }
+      body.dark-mode .mood-btn {
+        background: rgba(30, 37, 53, 0.55);
+      }
+      .mood-btn:hover {
+        border-color: var(--moss);
+      }
+      .mood-btn.selected {
+        border-color: var(--moss);
+        background: rgba(122, 155, 118, 0.1);
+      }
+      .mood-emoji {
+        font-size: 24px;
+        display: block;
+        margin-bottom: 3px;
+      }
+      .mood-label {
+        font-size: 9px;
+        color: var(--tl);
+        letter-spacing: 0.08em;
+      }
+      #mood-saved {
+        font-size: 11px;
+        color: var(--moss);
+        letter-spacing: 0.1em;
+        opacity: 0;
+        transition: opacity 0.5s;
+        margin-top: 7px;
+      }
+      #mood-saved.show {
+        opacity: 1;
+      }
+      #finish-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .fin-btn {
+        padding: 10px 24px;
+        border-radius: 22px;
+        font-size: 12px;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #btn-go-stretch {
+        border: none;
+        background: linear-gradient(135deg, var(--moss), var(--sage));
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(122, 155, 118, 0.28);
+      }
+      #btn-go-stretch:hover {
+        transform: translateY(-2px);
+      }
+      #btn-finish-reset {
+        border: 1px solid var(--linen);
+        background: transparent;
+        color: var(--tm);
+      }
+      #btn-finish-reset:hover {
+        border-color: var(--bark);
+        color: var(--bark);
+      }
+
+      /* 歷史 */
+      #history-screen {
+        background: linear-gradient(160deg, var(--warm-white), var(--sand));
+      }
+      body.dark-mode #history-screen {
+        background: linear-gradient(160deg, #1e2535, #252d3d);
+      }
+      #history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      #history-title {
+        font-size: 17px;
+        font-weight: 300;
+        color: var(--td);
+      }
+      #btn-close-history {
+        background: none;
+        border: 1px solid var(--linen);
+        border-radius: 18px;
+        padding: 4px 10px;
+        font-size: 11px;
+        color: var(--tl);
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #btn-close-history:hover {
+        border-color: var(--bark);
+        color: var(--bark);
+      }
+      #history-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 7px;
+        margin-bottom: 16px;
+      }
+      .hs-card {
+        background: rgba(255, 255, 255, 0.48);
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        border-radius: 10px;
+        padding: 8px 6px;
+        text-align: center;
+        backdrop-filter: blur(5px);
+      }
+      body.dark-mode .hs-card {
+        background: rgba(30, 37, 53, 0.45);
+        border-color: rgba(255, 255, 255, 0.07);
+      }
+      .hs-val {
+        font-size: 20px;
+        font-weight: 300;
+        color: var(--moss);
+      }
+      .hs-label {
+        font-size: 8px;
+        letter-spacing: 0.13em;
+        color: var(--tl);
+        text-transform: uppercase;
+        margin-top: 2px;
+      }
+      #history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .hist-item {
+        background: rgba(255, 255, 255, 0.48);
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        border-radius: 10px;
+        padding: 10px 12px;
+        backdrop-filter: blur(5px);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 3px;
+      }
+      body.dark-mode .hist-item {
+        background: rgba(30, 37, 53, 0.45);
+        border-color: rgba(255, 255, 255, 0.07);
+      }
+      .hist-date {
+        font-size: 10px;
+        color: var(--tl);
+      }
+      .hist-mood {
+        font-size: 16px;
+        text-align: right;
+      }
+      .hist-stats {
+        font-size: 12px;
+        color: var(--td);
+        margin-top: 2px;
+      }
+      .hist-kcal {
+        font-size: 11px;
+        color: var(--bark);
+        text-align: right;
+        margin-top: 2px;
+      }
+      #history-empty {
+        text-align: center;
+        padding: 36px 0;
+        color: var(--tl);
+        font-size: 13px;
+      }
+      #btn-clear-history {
+        display: block;
+        margin: 16px auto 0;
+        padding: 8px 22px;
+        border: 1px solid var(--linen);
+        border-radius: 18px;
+        background: transparent;
+        color: var(--tl);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #btn-clear-history:hover {
+        border-color: var(--moss);
+        color: var(--moss);
+      }
+
+      /* 徽章 */
+      #badge-popup {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 400;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      #badge-popup.show {
+        opacity: 1;
+      }
+      #badge-inner {
+        background: var(--warm-white);
+        border: 1px solid var(--linen);
+        border-radius: 20px;
+        padding: 22px 36px;
+        text-align: center;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        transform: scale(0.82);
+        transition: transform 0.45s var(--ease);
+      }
+      #badge-popup.show #badge-inner {
+        transform: scale(1);
+      }
+      #badge-icon {
+        font-size: 38px;
+        margin-bottom: 6px;
+      }
+      #badge-title {
+        font-size: 10px;
+        letter-spacing: 0.28em;
+        color: var(--moss);
+        text-transform: uppercase;
+        margin-bottom: 3px;
+      }
+      #badge-name {
+        font-size: 17px;
+        color: var(--td);
+        font-weight: 300;
+      }
+
+      @media (max-height: 680px) {
+        #scene {
+          flex: 0 1 80px;
+          min-height: 60px;
+        }
+        #rhythm-orb {
+          width: 72px;
+          height: 72px;
+          font-size: 28px;
+        }
+        #time-current {
+          font-size: 20px;
+        }
+        .stat-value {
+          font-size: 14px;
+        }
+        #btn-start {
+          height: 42px;
+          font-size: 13px;
+        }
+      }
+      @media (max-width: 360px) {
+        #stats-row {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="bg-canvas"></canvas>
+    <div id="encourage"></div>
+
+    <!-- 徽章 -->
+    <div id="badge-popup">
+      <div id="badge-inner">
+        <div id="badge-icon">🌱</div>
+        <div id="badge-title">里程達成</div>
+        <div id="badge-name">第一輪完成</div>
+      </div>
+    </div>
+
+    <!-- 熱身 -->
+    <div id="warmup-screen" class="fullscreen">
+      <div class="fullscreen-inner">
+        <div id="warmup-header">
+          <div id="warmup-icon">🌅</div>
+          <div id="warmup-title">訓練前熱身</div>
+          <div id="warmup-sub">2 分鐘讓身體漸入佳境</div>
+        </div>
+        <div id="warmup-steps-container"></div>
+        <div id="warmup-countdown">2:00</div>
+        <button id="btn-skip-warmup">略過，直接開始</button>
+      </div>
+    </div>
+
+    <!-- 伸展 -->
+    <div id="stretch-screen" class="fullscreen">
+      <div class="fullscreen-inner">
+        <div id="stretch-header">
+          <div id="stretch-icon">🌿</div>
+          <div id="stretch-title">靜態伸展冷卻</div>
+          <div id="stretch-sub">5 分鐘，讓身體好好感謝你</div>
+        </div>
+        <div id="stretch-steps-container"></div>
+        <div id="stretch-countdown">0:30</div>
+        <button id="btn-skip-stretch">完成伸展</button>
+      </div>
+    </div>
+
+    <!-- 完成 -->
+    <div id="finish-screen" class="fullscreen">
+      <div class="fullscreen-inner" style="text-align: center">
+        <div id="finish-icon">🌸</div>
+        <div id="finish-title">今天完成了！</div>
+        <div id="finish-sub">你今天超越了昨天的自己</div>
+        <div id="finish-stats">
+          <div class="fs-card">
+            <div class="fs-val" id="fin-min">0</div>
+            <div class="fs-label">跑步分鐘</div>
+          </div>
+          <div class="fs-card">
+            <div class="fs-val" id="fin-stage">0</div>
+            <div class="fs-label">完成輪次</div>
+          </div>
+          <div class="fs-card">
+            <div class="fs-val" id="fin-steps">0</div>
+            <div class="fs-label">估算步數</div>
+          </div>
+          <div class="fs-card">
+            <div class="fs-val kcal" id="fin-kcal">0</div>
+            <div class="fs-label">消耗大卡</div>
+          </div>
+        </div>
+        <div id="mood-section">
+          <div id="mood-title">今天感覺如何？</div>
+          <div id="mood-options">
+            <button class="mood-btn" data-mood="exhausted">
+              <span class="mood-emoji">🥱</span><span class="mood-label">累壞了</span>
+            </button>
+            <button class="mood-btn" data-mood="tired">
+              <span class="mood-emoji">😮‍💨</span><span class="mood-label">有點累</span>
+            </button>
+            <button class="mood-btn" data-mood="good">
+              <span class="mood-emoji">🫛</span><span class="mood-label">剛剛好</span>
+            </button>
+            <button class="mood-btn" data-mood="great">
+              <span class="mood-emoji">🌱</span><span class="mood-label">很舒暢</span>
+            </button>
+            <button class="mood-btn" data-mood="amazing">
+              <span class="mood-emoji">🥦</span><span class="mood-label">超有活力</span>
+            </button>
+          </div>
+          <div id="mood-saved">已記錄 ✓</div>
+        </div>
+        <div id="finish-actions">
+          <button class="fin-btn" id="btn-go-stretch">🧘 開始伸展</button>
+          <button class="fin-btn" id="btn-finish-reset">再來一次</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 歷史 -->
+    <div id="history-screen" class="fullscreen">
+      <div class="fullscreen-inner">
+        <div id="history-header">
+          <div id="history-title">訓練紀錄</div>
+          <button id="btn-close-history">關閉</button>
+        </div>
+        <div id="history-summary">
+          <div class="hs-card">
+            <div class="hs-val" id="hs-total">0</div>
+            <div class="hs-label">總次數</div>
+          </div>
+          <div class="hs-card">
+            <div class="hs-val" id="hs-streak">0</div>
+            <div class="hs-label">連續天數</div>
+          </div>
+          <div class="hs-card">
+            <div class="hs-val" id="hs-kcal">0</div>
+            <div class="hs-label">總大卡</div>
+          </div>
+        </div>
+        <div id="history-list"></div>
+        <div id="history-empty" style="display: none">
+          還沒有訓練紀錄<br />完成第一次訓練後會出現 🌱
+        </div>
+        <button id="btn-clear-history">📊 在 Google Sheets 中查看 / 刪除</button>
+      </div>
+    </div>
+
+    <div id="yt-container"><div id="yt-player"></div></div>
+
+    <!-- ═══ 主 App ═══ -->
+    <div id="app">
+      <!-- Header -->
+      <div id="header">
+        <h1>超慢跑 · Slow Jog</h1>
+        <div id="header-btns">
+          <button class="hdr-btn" id="btn-show-history">📋 記錄</button>
+          <button class="hdr-btn" id="dark-toggle">🌙 夜間</button>
+        </div>
+      </div>
+
+      <!-- 天氣 -->
+      <div id="weather-bar">
+        <div id="weather-loading">⏳ 取得天氣中…</div>
+        <div id="weather-icon" style="display: none"></div>
+        <div id="weather-info" style="display: none">
+          <div id="weather-main"></div>
+          <div id="weather-tip"></div>
+        </div>
+      </div>
+
+      <!-- 場景 SVG：豆苗新造型 -->
+      <div id="scene">
+        <svg
+          id="scene-svg"
+          viewBox="0 0 400 140"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMidYMax meet"
+        >
+          <defs>
+            <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop id="skyTop" offset="0%" stop-color="#E8D4B8" />
+              <stop id="skyBot" offset="100%" stop-color="#F5EDD8" />
+            </linearGradient>
+            <linearGradient id="groundGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#C4A882" />
+              <stop offset="100%" stop-color="#A8906C" />
+            </linearGradient>
+            <radialGradient id="bodyG" cx="36%" cy="30%" r="68%">
+              <stop offset="0%" stop-color="#C8F0A0" />
+              <stop offset="60%" stop-color="#7DC860" />
+              <stop offset="100%" stop-color="#5AA845" />
+            </radialGradient>
+            <radialGradient id="bellyG" cx="42%" cy="38%" r="58%">
+              <stop offset="0%" stop-color="#E8FFD8" />
+              <stop offset="100%" stop-color="#B8E8A0" />
+            </radialGradient>
+            <!-- 帽子漸層 -->
+            <linearGradient id="hatG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#8B6F5C" />
+              <stop offset="100%" stop-color="#6B4F3C" />
+            </linearGradient>
+          </defs>
+
+          <!-- 天空 -->
+          <rect x="0" y="0" width="400" height="115" fill="url(#skyGrad)" rx="10" />
+          <circle id="sun" cx="320" cy="34" r="20" fill="#F5C842" opacity=".85" />
+          <ellipse id="cloud1" cx="80" cy="30" rx="32" ry="12" fill="rgba(255,255,255,.58)" />
+          <ellipse id="cloud2" cx="195" cy="21" rx="26" ry="9" fill="rgba(255,255,255,.38)" />
+          <ellipse id="cloud3" cx="295" cy="45" rx="18" ry="7" fill="rgba(255,255,255,.32)" />
+          <!-- 地面 -->
+          <rect x="0" y="114" width="400" height="26" fill="url(#groundGrad)" />
+          <ellipse cx="200" cy="114" rx="220" ry="8" fill="#A8C4A0" opacity=".68" />
+
+          <!-- 裝飾植物（左） -->
+          <g id="plant-group" transform="translate(55,114)">
+            <rect id="stem" x="-2" y="-4" width="4" height="4" rx="2" fill="#7A9B76" />
+            <ellipse
+              id="leaf-l"
+              cx="-10"
+              cy="-8"
+              rx="0"
+              ry="0"
+              fill="#A8C4A0"
+              transform="rotate(-30 -10 -8)"
+            />
+            <ellipse
+              id="leaf-r"
+              cx="14"
+              cy="-12"
+              rx="0"
+              ry="0"
+              fill="#8AB890"
+              transform="rotate(20 14 -12)"
+            />
+            <circle id="flower" cx="0" cy="0" r="0" fill="#F5C842" opacity="0" />
+            <ellipse id="petal1" cx="0" cy="-6" rx="0" ry="0" fill="#F5A8A8" opacity="0" />
+            <ellipse id="petal2" cx="6" cy="0" rx="0" ry="0" fill="#F5A8A8" opacity="0" />
+            <ellipse id="petal3" cx="0" cy="6" rx="0" ry="0" fill="#F5A8A8" opacity="0" />
+            <ellipse id="petal4" cx="-6" cy="0" rx="0" ry="0" fill="#F5A8A8" opacity="0" />
+          </g>
+
+          <!--
+        ★ 新豆苗角色設計
+        造型：胖圓身體 + 帽子形豆苗頭冠 + 腮紅 + 帥氣眉毛
+             + 短手臂 + 腿 + 休息時搖尾巴 + 跑步時汗珠
+      -->
+          <g id="sprout-char">
+            <!-- 影子 -->
+            <ellipse cx="200" cy="126" rx="20" ry="5" fill="rgba(0,0,0,.08)" />
+
+            <!-- 身體（胖圓豆子，帶光澤） -->
+            <ellipse
+              cx="200"
+              cy="108"
+              rx="22"
+              ry="24"
+              fill="url(#bodyG)"
+              stroke="#5AA845"
+              stroke-width="1.5"
+            />
+            <!-- 肚子淺色圓 -->
+            <ellipse cx="200" cy="111" rx="14" ry="16" fill="url(#bellyG)" opacity=".7" />
+
+            <!-- 帽子底座（豆苗帽邊） -->
+            <ellipse cx="200" cy="85" rx="18" ry="5" fill="#8B6F5C" opacity=".9" />
+            <!-- 帽筒 -->
+            <rect x="188" y="72" width="24" height="14" rx="4" fill="url(#hatG)" />
+            <!-- 帽頂豆苗葉束 -->
+            <!-- 中間主莖 -->
+            <line
+              x1="200"
+              y1="72"
+              x2="200"
+              y2="56"
+              stroke="#5AA845"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+            <!-- 左大葉 -->
+            <ellipse
+              id="sp-leaf-l"
+              cx="186"
+              cy="60"
+              rx="14"
+              ry="6"
+              fill="#7DC860"
+              stroke="#5AA845"
+              stroke-width="1"
+              transform="rotate(-40 186 60)"
+            />
+            <!-- 右大葉 -->
+            <ellipse
+              id="sp-leaf-r"
+              cx="214"
+              cy="62"
+              rx="12"
+              ry="5.5"
+              fill="#6AB850"
+              stroke="#5AA845"
+              stroke-width="1"
+              transform="rotate(35 214 62)"
+            />
+            <!-- 小中葉 -->
+            <ellipse
+              cx="200"
+              cy="55"
+              rx="7"
+              ry="4"
+              fill="#90D070"
+              stroke="#5AA845"
+              stroke-width=".8"
+              transform="rotate(-5 200 55)"
+            />
+            <!-- 葉脈線 -->
+            <line
+              x1="196"
+              y1="65"
+              x2="184"
+              y2="58"
+              stroke="#5AA845"
+              stroke-width=".7"
+              opacity=".6"
+            />
+            <line
+              x1="204"
+              y1="66"
+              x2="216"
+              y2="60"
+              stroke="#5AA845"
+              stroke-width=".7"
+              opacity=".6"
+            />
+
+            <!-- 帽帶（橙色小帶子，俏皮） -->
+            <rect x="188" y="83" width="24" height="3" rx="1.5" fill="#E8A840" opacity=".85" />
+            <!-- 帽帶扣 -->
+            <rect x="197" y="82" width="6" height="5" rx="1" fill="#D49830" />
+
+            <!-- 眼睛（大而有神） -->
+            <!-- 眼白 -->
+            <ellipse cx="194" cy="103" rx="4.5" ry="5" fill="white" opacity=".95" />
+            <ellipse cx="206" cy="103" rx="4.5" ry="5" fill="white" opacity=".95" />
+            <!-- 瞳孔 -->
+            <circle cx="194.5" cy="103.5" r="3" fill="#2A2018" />
+            <circle cx="206.5" cy="103.5" r="3" fill="#2A2018" />
+            <!-- 眼睛高光 -->
+            <circle cx="195.8" cy="101.8" r="1.2" fill="white" />
+            <circle cx="207.8" cy="101.8" r="1.2" fill="white" />
+            <!-- 帥眉毛 -->
+            <path
+              d="M 190,98 Q 193,96 196,97.5"
+              fill="none"
+              stroke="#3A2818"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <path
+              d="M 204,97.5 Q 207,96 210,98"
+              fill="none"
+              stroke="#3A2818"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+
+            <!-- 嘴巴（W 形，俏皮） -->
+            <path
+              d="M 195,110 Q 197,113 200,111 Q 203,113 205,110"
+              fill="none"
+              stroke="#3A2818"
+              stroke-width="1.4"
+              stroke-linecap="round"
+            />
+
+            <!-- 腮紅 -->
+            <ellipse cx="190" cy="107" rx="4" ry="2.5" fill="#F5A8A8" opacity=".5" />
+            <ellipse cx="210" cy="107" rx="4" ry="2.5" fill="#F5A8A8" opacity=".5" />
+
+            <!-- 手臂（短小可愛） -->
+            <!-- 左手 -->
+            <ellipse
+              id="arm-l"
+              cx="180"
+              cy="112"
+              rx="5"
+              ry="3.5"
+              fill="#7DC860"
+              stroke="#5AA845"
+              stroke-width="1"
+              transform="rotate(-30 180 112)"
+            />
+            <!-- 右手 -->
+            <ellipse
+              id="arm-r"
+              cx="220"
+              cy="112"
+              rx="5"
+              ry="3.5"
+              fill="#7DC860"
+              stroke="#5AA845"
+              stroke-width="1"
+              transform="rotate(30 220 112)"
+            />
+
+            <!-- 腿 -->
+            <ellipse
+              id="sp-leg-l"
+              cx="194"
+              cy="129"
+              rx="5.5"
+              ry="6"
+              fill="#7DC860"
+              stroke="#5AA845"
+              stroke-width="1"
+            />
+            <ellipse id="sp-foot-l" cx="193" cy="134" rx="7" ry="3.5" fill="#5AA845" />
+            <ellipse
+              id="sp-leg-r"
+              cx="206"
+              cy="129"
+              rx="5.5"
+              ry="6"
+              fill="#7DC860"
+              stroke="#5AA845"
+              stroke-width="1"
+            />
+            <ellipse id="sp-foot-r" cx="207" cy="134" rx="7" ry="3.5" fill="#5AA845" />
+
+            <!-- 尾巴（休息時搖擺） -->
+            <ellipse
+              id="sp-tail"
+              cx="222"
+              cy="118"
+              rx="6"
+              ry="3"
+              fill="#A8D880"
+              stroke="#5AA845"
+              stroke-width=".8"
+              transform="rotate(-15 222 118)"
+              opacity="0"
+            />
+
+            <!-- 汗珠（跑步時） -->
+            <g id="sp-sweat" opacity="0">
+              <ellipse cx="213" cy="95" rx="2.5" ry="3.5" fill="#90D8F8" opacity=".85" />
+              <ellipse cx="214" cy="92" rx="1" ry="1.5" fill="#90D8F8" opacity=".6" />
+            </g>
+
+            <!-- 完成星星 -->
+            <g id="sp-stars">
+              <text x="178" y="80" font-size="10" opacity=".0">⭐</text>
+              <text x="215" y="78" font-size="8" opacity=".0">✨</text>
+            </g>
+          </g>
+          <!-- /sprout-char -->
+        </svg>
+      </div>
+
+      <!-- 節奏中心（水平：聲音開關 ← 球 → 腳步+狀態） -->
+      <div id="rhythm-center">
+        <!-- 左：聲音 + 體重 -->
+        <div id="orb-left">
+          <div id="sound-label">節奏聲</div>
+          <label class="sw">
+            <input type="checkbox" id="sound-toggle" checked />
+            <div class="sw-track"></div>
+            <div class="sw-thumb"></div>
+          </label>
+          <div id="weight-mini">
+            <div id="weight-label-mini">體重 kg</div>
+            <input type="number" id="weight-input" value="60" min="30" max="150" />
+          </div>
+        </div>
+
+        <!-- 中：節奏球 -->
+        <div id="rhythm-orb">
+          🌱
+          <div id="orb-overlay">
+            <div id="overlay-emoji">😮‍💨</div>
+            <div id="overlay-countdown">1:00</div>
+            <div id="overlay-label">休息中</div>
+          </div>
+        </div>
+
+        <!-- 右：腳步燈 + mode + 呼吸 -->
+        <div id="orb-right">
+          <div id="footsteps">
+            <div class="foot-item">
+              <div class="foot-label">左</div>
+              <div class="foot-dot" id="dot-l"></div>
+            </div>
+            <div class="foot-sep"></div>
+            <div class="foot-item">
+              <div class="foot-label">右</div>
+              <div class="foot-dot" id="dot-r"></div>
+            </div>
+          </div>
+          <div id="mode-tag">待機</div>
+          <div id="breath-guide">準備開始</div>
+        </div>
+      </div>
+
+      <!-- 任務卡 -->
+      <div id="task-card">
+        <div id="task-label">現在任務</div>
+        <div id="task-text">按下開始，展開今天的旅程 🥦</div>
+      </div>
+
+      <!-- 進度 -->
+      <div id="progress-section">
+        <div id="time-display">
+          <span id="time-current">00:00</span>
+          <span id="time-total">/ 40:00</span>
+        </div>
+        <div id="progress-bar-wrap"><div id="progress-bar-fill"></div></div>
+        <div id="phase-label">待機中</div>
+      </div>
+
+      <!-- 四欄統計 -->
+      <div id="stats-row">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-min">0</div>
+          <div class="stat-unit">已跑分鐘</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-stage">0<span style="font-size: 8px">/6</span></div>
+          <div class="stat-unit">完成輪次</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-steps">0</div>
+          <div class="stat-unit">估算步數</div>
+        </div>
+        <div class="stat-card" id="stat-kcal">
+          <div class="stat-value" id="stat-kcal-val">0</div>
+          <div class="stat-unit">消耗大卡</div>
+        </div>
+      </div>
+
+      <!-- 按鈕 -->
+      <div id="controls">
+        <button id="btn-start">開 始</button>
+        <button id="btn-reset">↺</button>
+      </div>
+    </div>
+    <!-- /#app -->
+
+    <script>
+      // ================================================================
+      // 常數
+      // ================================================================
+      const TOTAL_DURATION = 40 * 60,
+        RUN_DURATION = 5 * 60,
+        REST_DURATION = 60;
+      const CYCLE_DURATION = RUN_DURATION + REST_DURATION,
+        NUM_CYCLES = 6;
+      const COOLDOWN_START = NUM_CYCLES * CYCLE_DURATION;
+      const RUN_BEAT_MS = 60000 / 160,
+        REST_BEAT_MS = 60000 / 60;
+      const MET_RUN = 6,
+        MET_REST = 1.2;
+      const MARIMBA = [523, 587, 659, 698, 784, 880, 988, 1047];
+      const MOOD_EMOJI = { exhausted: '🥱', tired: '😮‍💨', good: '🫛', great: '🌱', amazing: '🥦' };
+
+      const WARMUP_STEPS = [
+        { emoji: '🚶', name: '原地慢走', desc: '輕鬆踏步，讓血液流動', dur: 30 },
+        { emoji: '🙆', name: '肩膀繞圈', desc: '前後各繞10圈，放鬆肩頸', dur: 20 },
+        { emoji: '🦵', name: '膝蓋抬高', desc: '交替抬膝，啟動臀腿', dur: 25 },
+        { emoji: '🦶', name: '腳踝旋轉', desc: '左右各繞圈，預防扭傷', dur: 15 },
+        { emoji: '💃', name: '側身伸展', desc: '雙手上舉，左右側彎', dur: 20 },
+        { emoji: '🏃', name: '小碎步熱身', desc: '輕快原地踏步，進入節奏', dur: 10 },
+      ];
+      const STRETCH_STEPS = [
+        { emoji: '🦵', name: '大腿前側伸展', desc: '單腳向後彎，手抓腳踝，保持平衡', dur: 30 },
+        { emoji: '🦵', name: '大腿後側伸展', desc: '腳伸直坐地，身體向前傾，感受拉伸', dur: 30 },
+        { emoji: '🦷', name: '小腿伸展', desc: '腳跟踩地，腳尖翹起，感受小腿拉伸', dur: 30 },
+        { emoji: '🙆', name: '肩膀與手臂', desc: '手臂橫過胸前，另一手輕壓，保持穩定', dur: 25 },
+        { emoji: '🧘', name: '側腰伸展', desc: '雙腳站肩寬，手臂高舉向側彎', dur: 25 },
+        { emoji: '🔄', name: '髖部旋轉', desc: '雙手叉腰，骨盆畫大圓，左右各5次', dur: 30 },
+        { emoji: '🌊', name: '脊椎波浪', desc: '雙手撐牆，脊椎一節節捲曲與伸展', dur: 25 },
+        { emoji: '💆', name: '頸部放鬆', desc: '緩慢側傾頭部，感受頸側拉伸，深呼吸', dur: 20 },
+        { emoji: '🧘', name: '站立冥想收尾', desc: '雙眼輕閉，深呼吸3次，感謝今天的自己', dur: 25 },
+      ];
+      const RUN_TASKS = [
+        '放鬆肩膀，踩著輕盈的步伐 🥦',
+        '感受腳掌輕觸地面，像貓咪走路',
+        '微微抬頭，視線望向前方',
+        '讓思緒自由漂流，享受節奏',
+        '感受身體漸漸溫暖起來 ☀️',
+        '手臂放鬆擺動，找到你的韻律',
+      ];
+      const REST_TASKS = [
+        '深呼吸，吸氣4秒 — 吐氣4秒 😮‍💨',
+        '搖搖手臂，放鬆肩頸',
+        '踩踩腳，活動腳踝',
+        '閉眼微笑，享受休息片刻',
+        '水分補充時間，喝口水吧 💧',
+        '感謝身體的努力，馬上再出發',
+      ];
+      const ENCOURAGEMENTS = [
+        '你的身體正在感謝你 🥦',
+        '每一步都是禮物',
+        '慢，是一種優雅',
+        '呼吸，放鬆，向前',
+        '你比昨天更強了',
+        '享受這份寧靜',
+        '節奏就是你的冥想',
+        '很好，繼續保持',
+      ];
+      const BG_PALETTE = [
+        { pct: 0, skyTop: '#E8D4B8', skyBot: '#F5EDD8', sunColor: '#F5C842', sunX: 320, sunY: 34 },
+        {
+          pct: 0.25,
+          skyTop: '#C8D8E8',
+          skyBot: '#E8F0D8',
+          sunColor: '#FFD060',
+          sunX: 250,
+          sunY: 22,
+        },
+        {
+          pct: 0.5,
+          skyTop: '#A8C8E0',
+          skyBot: '#D8ECF0',
+          sunColor: '#FFF0A0',
+          sunX: 200,
+          sunY: 13,
+        },
+        {
+          pct: 0.75,
+          skyTop: '#E8B880',
+          skyBot: '#F0D0A8',
+          sunColor: '#FF8840',
+          sunX: 100,
+          sunY: 36,
+        },
+        { pct: 1, skyTop: '#2C3A60', skyBot: '#3A4A70', sunColor: '#FFE8C0', sunX: 60, sunY: 95 },
+      ];
+      const WEATHER_TIPS = {
+        hot: '🌡️ 今天偏熱，記得多補水，感覺太喘就放慢',
+        warm: '☀️ 氣溫舒適，適合今天的超慢跑！',
+        cool: '🍃 微涼天氣，保持節奏讓身體暖起來',
+        cold: '🧥 氣溫偏低，記得熱身充分、注意保暖',
+        rainy: '🌧️ 室內跑步日，專注感受節奏',
+        cloudy: '⛅ 多雲天氣，跑步好時機',
+      };
+
+      // 狀態
+      let isRunning = false,
+        elapsed = 0,
+        beatCount = 0,
+        runElapsed = 0;
+      let breathPhase = 0,
+        breathCount = 0,
+        lastBeatTime = 0;
+      let animFrameId = null,
+        lastTimestamp = null;
+      let isResting = false,
+        completedCycles = 0,
+        isDark = false;
+      let ytPlayer = null,
+        ytReady = false,
+        encourageTimer = null;
+      let leftFoot = true,
+        noteIndex = 0,
+        selectedMood = null;
+      let warmupActive = false,
+        warmupElapsed = 0,
+        warmupStepIdx = 0,
+        warmupTimer = null;
+      let stretchStepTimer = null,
+        lastRowIndex = null;
+
+      const $ = (id) => document.getElementById(id);
+      const dom = {
+        btnStart: $('btn-start'),
+        btnReset: $('btn-reset'),
+        darkToggle: $('dark-toggle'),
+        soundToggle: $('sound-toggle'),
+        weightInput: $('weight-input'),
+        timeCurrent: $('time-current'),
+        progressFill: $('progress-bar-fill'),
+        progressWrap: $('progress-bar-wrap'),
+        phaseLabel: $('phase-label'),
+        taskLabel: $('task-label'),
+        taskText: $('task-text'),
+        breathGuide: $('breath-guide'),
+        rhythmOrb: $('rhythm-orb'),
+        orbOverlay: $('orb-overlay'),
+        overlayEmoji: $('overlay-emoji'),
+        overlayCountdown: $('overlay-countdown'),
+        overlayLabel: $('overlay-label'),
+        dotL: $('dot-l'),
+        dotR: $('dot-r'),
+        modeTag: $('mode-tag'),
+        encourage: $('encourage'),
+        badgePopup: $('badge-popup'),
+        badgeIcon: $('badge-icon'),
+        badgeName: $('badge-name'),
+        finishScreen: $('finish-screen'),
+        finMin: $('fin-min'),
+        finStage: $('fin-stage'),
+        finSteps: $('fin-steps'),
+        finKcal: $('fin-kcal'),
+        btnFinish: $('btn-finish-reset'),
+        btnGoStretch: $('btn-go-stretch'),
+        statMin: $('stat-min'),
+        statStage: $('stat-stage'),
+        statSteps: $('stat-steps'),
+        statKcal: $('stat-kcal-val'),
+        weatherBar: $('weather-bar'),
+        weatherLoading: $('weather-loading'),
+        weatherIcon: $('weather-icon'),
+        weatherInfo: $('weather-info'),
+        weatherMain: $('weather-main'),
+        weatherTip: $('weather-tip'),
+        warmupScreen: $('warmup-screen'),
+        warmupStepsContainer: $('warmup-steps-container'),
+        warmupCountdown: $('warmup-countdown'),
+        btnSkipWarmup: $('btn-skip-warmup'),
+        stretchScreen: $('stretch-screen'),
+        stretchStepsContainer: $('stretch-steps-container'),
+        stretchCountdown: $('stretch-countdown'),
+        btnSkipStretch: $('btn-skip-stretch'),
+        historyScreen: $('history-screen'),
+        historyList: $('history-list'),
+        historyEmpty: $('history-empty'),
+        histTotal: $('hs-total'),
+        histStreak: $('hs-streak'),
+        histKcal: $('hs-kcal'),
+        btnShowHistory: $('btn-show-history'),
+        btnCloseHistory: $('btn-close-history'),
+        btnClearHistory: $('btn-clear-history'),
+        moodOptions: $('mood-options'),
+        moodSaved: $('mood-saved'),
+        skyTop: $('skyTop'),
+        skyBot: $('skyBot'),
+        sun: $('sun'),
+        cloud1: $('cloud1'),
+        stem: $('stem'),
+        leafL: $('leaf-l'),
+        leafR: $('leaf-r'),
+        flower: $('flower'),
+        sproutChar: $('sprout-char'),
+        spLegL: $('sp-leg-l'),
+        spLegR: $('sp-leg-r'),
+        spFootL: $('sp-foot-l'),
+        spFootR: $('sp-foot-r'),
+        spTail: $('sp-tail'),
+        spSweat: $('sp-sweat'),
+      };
+
+      // 段落標記
+      for (let c = 1; c <= NUM_CYCLES; c++) {
+        addSM(c * RUN_DURATION + (c - 1) * REST_DURATION, 'pending run-end');
+        if (c < NUM_CYCLES) addSM(c * CYCLE_DURATION, 'pending rest-end');
+      }
+      function addSM(t, cls) {
+        const m = document.createElement('div');
+        m.className = 'seg-marker ' + cls;
+        m.style.left = `${(t / TOTAL_DURATION) * 100}%`;
+        dom.progressWrap.insertBefore(m, dom.progressFill);
+      }
+
+      // ── 天氣 ──
+      async function fetchWeather() {
+        try {
+          const pos = await new Promise((r, j) =>
+            navigator.geolocation.getCurrentPosition(r, j, { timeout: 8000 })
+          );
+          const { latitude: lat, longitude: lon } = pos.coords;
+          const d = await (
+            await fetch(
+              `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&timezone=auto`
+            )
+          ).json();
+          const temp = Math.round(d.current.temperature_2m),
+            code = d.current.weathercode;
+          let icon = '🌤',
+            desc = '天氣';
+          if (code === 0) {
+            icon = '☀️';
+            desc = '晴天';
+          } else if (code <= 3) {
+            icon = '⛅';
+            desc = '多雲';
+          } else if (code <= 49) {
+            icon = '🌫️';
+            desc = '霧';
+          } else if (code <= 67) {
+            icon = '🌧️';
+            desc = '雨天';
+          } else if (code <= 77) {
+            icon = '❄️';
+            desc = '雪';
+          } else if (code <= 82) {
+            icon = '🌦️';
+            desc = '陣雨';
+          } else if (code <= 99) {
+            icon = '⛈️';
+            desc = '雷雨';
+          }
+          let tip = 'warm';
+          if (code >= 45) tip = 'rainy';
+          else if (code >= 45) tip = 'cloudy';
+          else if (temp >= 30) tip = 'hot';
+          else if (temp >= 20) tip = 'warm';
+          else if (temp >= 12) tip = 'cool';
+          else tip = 'cold';
+          dom.weatherLoading.style.display = 'none';
+          dom.weatherIcon.style.display = 'block';
+          dom.weatherInfo.style.display = 'flex';
+          dom.weatherIcon.textContent = icon;
+          dom.weatherMain.textContent = `${desc} · ${temp}°C`;
+          dom.weatherTip.textContent = WEATHER_TIPS[tip];
+        } catch (e) {
+          dom.weatherLoading.textContent = '📍 開啟位置權限可顯示天氣建議';
+        }
+      }
+      fetchWeather();
+
+      // ── Google Sheets ──
+      const GS_URL =
+        'https://script.google.com/macros/s/AKfycbydnCqeqZ9RxLfNFHK5Ny6-GNsdcE4aaxM1tl4NzdQsFX4SUh9sUcG2pl6ir26ovwGW/exec';
+      async function addRecord(min, stages, steps, kcal, mood) {
+        try {
+          const r = await fetch(GS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+              date: new Date().toLocaleDateString('zh-TW', {
+                month: 'short',
+                day: 'numeric',
+                weekday: 'short',
+              }),
+              dateKey: new Date().toDateString(),
+              min,
+              stages,
+              steps,
+              kcal,
+              mood: mood || '',
+              moodEmoji: mood ? MOOD_EMOJI[mood] || '' : '',
+            }),
+          });
+          const d = await r.json();
+          if (d.status === 'ok') lastRowIndex = d.rowIndex ?? null;
+        } catch (e) {
+          console.warn('Sheets write fail', e);
+        }
+      }
+      async function updateMoodInSheet(mood) {
+        if (!lastRowIndex) return;
+        try {
+          await fetch(GS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+              _action: 'updateMood',
+              rowIndex: lastRowIndex,
+              mood,
+              moodEmoji: MOOD_EMOJI[mood] || '',
+            }),
+          });
+        } catch (e) {}
+      }
+      async function renderHistory() {
+        dom.historyList.innerHTML =
+          '<div style="text-align:center;padding:20px;color:var(--tl)">載入中…</div>';
+        dom.historyEmpty.style.display = 'none';
+        let records = [];
+        try {
+          const d = await (await fetch(GS_URL + '?t=' + Date.now())).json();
+          if (d.status === 'ok') records = d.records || [];
+        } catch (e) {
+          dom.historyList.innerHTML =
+            '<div style="text-align:center;padding:20px;color:var(--tl)">⚠️ 無法連線 Google Sheets</div>';
+          return;
+        }
+        dom.histTotal.textContent = records.length;
+        dom.histKcal.textContent = records.reduce((a, r) => a + (Number(r.kcal) || 0), 0);
+        const days = [...new Set(records.map((r) => r.dateKey).filter(Boolean))];
+        let streak = 0;
+        const today = new Date().toDateString(),
+          yest = new Date(Date.now() - 86400000).toDateString();
+        for (let i = 0; i < days.length; i++) {
+          if (i === 0) {
+            if (days[0] === today || days[0] === yest) streak = 1;
+            else break;
+          } else {
+            const diff = (new Date(days[i - 1]) - new Date(days[i])) / 86400000;
+            if (Math.abs(diff - 1) < 0.1) streak++;
+            else break;
+          }
+        }
+        dom.histStreak.textContent = streak;
+        if (!records.length) {
+          dom.historyEmpty.style.display = 'block';
+          dom.historyList.innerHTML = '';
+        } else {
+          dom.historyEmpty.style.display = 'none';
+          dom.historyList.innerHTML = records
+            .map(
+              (r) =>
+                `<div class="hist-item"><div class="hist-date">${r.date || ''}</div><div class="hist-mood">${r.moodEmoji || ''}</div><div class="hist-stats">${r.min} 分鐘 · ${r.stages} 輪 · ${r.steps} 步</div><div class="hist-kcal">🔥 ${r.kcal} kcal</div></div>`
+            )
+            .join('');
+        }
+      }
+
+      // ── 熱身 ──
+      function buildWarmupUI() {
+        dom.warmupStepsContainer.innerHTML = WARMUP_STEPS.map(
+          (s, i) =>
+            `<div class="warmup-step-card" id="ws-${i}"><div class="warmup-step-emoji">${s.emoji}</div><div class="warmup-step-body"><div class="warmup-step-name">${s.name}</div><div class="warmup-step-dur">${s.dur}秒 · ${s.desc}</div><div class="warmup-step-prog"><div class="warmup-step-bar" id="wsb-${i}"></div></div></div></div>`
+        ).join('');
+      }
+      buildWarmupUI();
+      function startWarmup() {
+        warmupActive = true;
+        warmupElapsed = 0;
+        warmupStepIdx = 0;
+        dom.warmupScreen.classList.add('show');
+        try {
+          getAudioCtx().resume();
+        } catch (e) {}
+        runWarmupTick();
+      }
+      function runWarmupTick() {
+        const TOT = WARMUP_STEPS.reduce((a, s) => a + s.dur, 0);
+        if (warmupElapsed >= TOT) {
+          endWarmup();
+          return;
+        }
+        let acc = 0;
+        for (let i = 0; i < WARMUP_STEPS.length; i++) {
+          if (warmupElapsed < acc + WARMUP_STEPS[i].dur) {
+            if (i !== warmupStepIdx) {
+              $('ws-' + warmupStepIdx)?.classList.remove('active');
+              warmupStepIdx = i;
+              $('ws-' + i)?.classList.add('active');
+              playTransition(false);
+            }
+            const bar = $('wsb-' + i);
+            if (bar) bar.style.width = `${((warmupElapsed - acc) / WARMUP_STEPS[i].dur) * 100}%`;
+            break;
+          }
+          acc += WARMUP_STEPS[i].dur;
+        }
+        dom.warmupCountdown.textContent = fmt(TOT - warmupElapsed);
+        warmupTimer = setTimeout(() => {
+          warmupElapsed++;
+          runWarmupTick();
+        }, 1000);
+      }
+      function endWarmup() {
+        warmupActive = false;
+        dom.warmupScreen.classList.remove('show');
+        startMainRun();
+      }
+
+      // ── 伸展 ──
+      function buildStretchUI() {
+        dom.stretchStepsContainer.innerHTML = STRETCH_STEPS.map(
+          (s, i) =>
+            `<div class="stretch-card" id="ss-${i}"><div class="stretch-emoji">${s.emoji}</div><div class="stretch-body"><div class="stretch-name">${s.name}</div><div class="stretch-desc">${s.desc}</div><div class="stretch-timer-bar"><div class="stretch-timer-fill" id="ssb-${i}"></div></div></div></div>`
+        ).join('');
+      }
+      buildStretchUI();
+      function startStretch() {
+        dom.finishScreen.classList.remove('show');
+        dom.stretchScreen.classList.add('show');
+        runStretchStep(0);
+      }
+      function runStretchStep(idx) {
+        if (idx >= STRETCH_STEPS.length) {
+          endStretch();
+          return;
+        }
+        document.querySelectorAll('.stretch-card').forEach((c) => c.classList.remove('active'));
+        const card = $('ss-' + idx);
+        if (card) {
+          card.classList.add('active');
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        const bar = $('ssb-' + idx),
+          step = STRETCH_STEPS[idx];
+        let sec = 0;
+        playTransition(true);
+        dom.stretchCountdown.textContent = fmt(step.dur);
+        stretchStepTimer = setInterval(() => {
+          sec++;
+          if (bar) bar.style.width = `${(sec / step.dur) * 100}%`;
+          dom.stretchCountdown.textContent = fmt(step.dur - sec);
+          if (sec >= step.dur) {
+            clearInterval(stretchStepTimer);
+            runStretchStep(idx + 1);
+          }
+        }, 1000);
+      }
+      function endStretch() {
+        dom.stretchScreen.classList.remove('show');
+        playChime();
+        reset();
+      }
+
+      // ── 音效 ──
+      let audioCtx = null;
+      function getAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+      }
+      function playMarimba(isLeft) {
+        if (!dom.soundToggle.checked) return;
+        try {
+          const ctx = getAudioCtx(),
+            t = ctx.currentTime;
+          const base = MARIMBA[noteIndex % MARIMBA.length],
+            freq = isLeft ? base : base * 1.5;
+          const o1 = ctx.createOscillator(),
+            g1 = ctx.createGain();
+          o1.connect(g1);
+          g1.connect(ctx.destination);
+          o1.type = 'sine';
+          o1.frequency.setValueAtTime(freq, t);
+          g1.gain.setValueAtTime(0, t);
+          g1.gain.linearRampToValueAtTime(0.26, t + 0.005);
+          g1.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+          o1.start(t);
+          o1.stop(t + 0.33);
+          const o2 = ctx.createOscillator(),
+            g2 = ctx.createGain();
+          o2.connect(g2);
+          g2.connect(ctx.destination);
+          o2.type = 'triangle';
+          o2.frequency.setValueAtTime(freq * 0.5, t);
+          g2.gain.setValueAtTime(0, t);
+          g2.gain.linearRampToValueAtTime(0.08, t + 0.007);
+          g2.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+          o2.start(t);
+          o2.stop(t + 0.23);
+          const o3 = ctx.createOscillator(),
+            g3 = ctx.createGain();
+          o3.connect(g3);
+          g3.connect(ctx.destination);
+          o3.type = 'sine';
+          o3.frequency.setValueAtTime(freq * 4, t);
+          g3.gain.setValueAtTime(0.05, t);
+          g3.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+          o3.start(t);
+          o3.stop(t + 0.05);
+          if (isLeft) noteIndex++;
+        } catch (e) {}
+      }
+      function playRestBeat() {
+        if (!dom.soundToggle.checked) return;
+        try {
+          const ctx = getAudioCtx(),
+            t = ctx.currentTime,
+            o = ctx.createOscillator(),
+            g = ctx.createGain();
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.type = 'sine';
+          o.frequency.setValueAtTime(120, t);
+          o.frequency.exponentialRampToValueAtTime(80, t + 0.3);
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.12, t + 0.012);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.48);
+          o.start(t);
+          o.stop(t + 0.5);
+        } catch (e) {}
+      }
+      function playChime() {
+        try {
+          const ctx = getAudioCtx();
+          [523, 659, 784].forEach((f, i) => {
+            const o = ctx.createOscillator(),
+              g = ctx.createGain();
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.type = 'sine';
+            const t0 = ctx.currentTime + i * 0.13;
+            o.frequency.setValueAtTime(f, t0);
+            g.gain.setValueAtTime(0.15, t0);
+            g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.9);
+            o.start(t0);
+            o.stop(t0 + 0.9);
+          });
+        } catch (e) {}
+      }
+      function playTransition(toRest) {
+        try {
+          const ctx = getAudioCtx(),
+            notes = toRest ? [784, 659, 523] : [523, 659, 784, 1047];
+          notes.forEach((f, i) => {
+            const o = ctx.createOscillator(),
+              g = ctx.createGain();
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.type = 'sine';
+            const t0 = ctx.currentTime + i * 0.13;
+            o.frequency.setValueAtTime(f, t0);
+            g.gain.setValueAtTime(0.18, t0);
+            g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.38);
+            o.start(t0);
+            o.stop(t0 + 0.4);
+          });
+        } catch (e) {}
+      }
+
+      // ── YouTube ──
+      function loadYTApi() {
+        if (window.YT && window.YT.Player) return;
+        const s = document.createElement('script');
+        s.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(s);
+      }
+      window.onYouTubeIframeAPIReady = () => {
+        ytPlayer = new YT.Player('yt-player', {
+          height: '1',
+          width: '1',
+          videoId: 'w-eTvzIPCHw',
+          playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1 },
+          events: {
+            onReady: () => {
+              ytReady = true;
+            },
+          },
+        });
+      };
+      loadYTApi();
+
+      // ── 計時器 ──
+      function tick(ts) {
+        if (!isRunning) return;
+        if (!lastTimestamp) lastTimestamp = ts;
+        const delta = (ts - lastTimestamp) / 1000;
+        lastTimestamp = ts;
+        elapsed += delta;
+        if (elapsed >= TOTAL_DURATION) {
+          elapsed = TOTAL_DURATION;
+          finish();
+          return;
+        }
+        const seg = getSegmentInfo(elapsed);
+        const wasResting = isResting;
+        isResting = seg.isRest;
+        if (wasResting !== isResting) onSegmentSwitch(isResting, seg.cycleIdx);
+        if (!isResting) runElapsed += delta;
+        const bms = isResting ? REST_BEAT_MS : RUN_BEAT_MS;
+        if (ts - lastBeatTime >= bms) {
+          lastBeatTime = ts;
+          onBeat(isResting, seg);
+        }
+        updateUI(seg);
+        animFrameId = requestAnimationFrame(tick);
+      }
+
+      function getSegmentInfo(t) {
+        if (t >= COOLDOWN_START)
+          return {
+            isRest: false,
+            cycleIdx: NUM_CYCLES,
+            cycleElapsed: t - COOLDOWN_START,
+            restSecondsLeft: 0,
+          };
+        const cycle = ~~(t / CYCLE_DURATION),
+          offset = t % CYCLE_DURATION;
+        if (offset < RUN_DURATION)
+          return { isRest: false, cycleIdx: cycle, cycleElapsed: offset, restSecondsLeft: 0 };
+        return {
+          isRest: true,
+          cycleIdx: cycle,
+          cycleElapsed: offset - RUN_DURATION,
+          restSecondsLeft: REST_DURATION - (offset - RUN_DURATION),
+        };
+      }
+
+      function onSegmentSwitch(nowResting, cycleIdx) {
+        if (nowResting) {
+          playTransition(true);
+          dom.sproutChar.classList.remove('running');
+          dom.sproutChar.classList.add('resting');
+          dom.rhythmOrb.classList.add('rest-mode');
+          dom.orbOverlay.classList.add('show');
+          dom.overlayEmoji.textContent = '😮‍💨';
+          dom.overlayLabel.textContent = '休息中';
+          dom.modeTag.textContent = '休息中';
+          dom.modeTag.className = 'mode-tag rest';
+          dom.taskLabel.className = 'task-label rest';
+          dom.taskText.textContent = REST_TASKS[cycleIdx % REST_TASKS.length];
+          dom.phaseLabel.className = 'phase-label rest';
+        } else {
+          playTransition(false);
+          completedCycles = cycleIdx;
+          dom.sproutChar.classList.remove('resting');
+          dom.sproutChar.classList.add('running');
+          dom.rhythmOrb.classList.remove('rest-mode');
+          dom.orbOverlay.classList.remove('show');
+          dom.modeTag.textContent = '跑步中';
+          dom.modeTag.className = 'mode-tag';
+          dom.taskLabel.className = 'task-label';
+          dom.taskText.textContent = RUN_TASKS[cycleIdx % RUN_TASKS.length];
+          dom.phaseLabel.className = 'phase-label';
+          showBadge('🥦', '第 ' + (cycleIdx + 1) + ' 輪開始');
+        }
+      }
+
+      function onBeat(resting, seg) {
+        if (!resting) {
+          beatCount++;
+          playMarimba(leftFoot);
+          dom.rhythmOrb.classList.remove('beat');
+          void dom.rhythmOrb.offsetWidth;
+          dom.rhythmOrb.classList.add('beat');
+          dom.dotL.classList.remove('active-left');
+          dom.dotR.classList.remove('active-right');
+          if (leftFoot) dom.dotL.classList.add('active-left');
+          else dom.dotR.classList.add('active-right');
+          animLegs(leftFoot);
+          leftFoot = !leftFoot;
+          breathCount++;
+          if (breathCount >= 2) {
+            breathCount = 0;
+            breathPhase ^= 1;
+          }
+          dom.breathGuide.textContent = breathPhase === 0 ? '吸  氣' : '吐  氣';
+        } else {
+          playRestBeat();
+          dom.rhythmOrb.classList.remove('beat');
+          void dom.rhythmOrb.offsetWidth;
+          dom.rhythmOrb.classList.add('beat');
+          breathCount++;
+          if (breathCount >= 2) {
+            breathCount = 0;
+            breathPhase ^= 1;
+          }
+          dom.breathGuide.textContent = breathPhase === 0 ? '慢  吸' : '慢  吐';
+        }
+      }
+
+      function animLegs(isLeft) {
+        if (isLeft) {
+          dom.spLegL.setAttribute('cy', '126');
+          dom.spLegL.setAttribute('ry', '4');
+          dom.spFootL.setAttribute('cy', '129');
+          dom.spLegR.setAttribute('cy', '130');
+          dom.spLegR.setAttribute('ry', '7');
+          dom.spFootR.setAttribute('cy', '136');
+        } else {
+          dom.spLegR.setAttribute('cy', '126');
+          dom.spLegR.setAttribute('ry', '4');
+          dom.spFootR.setAttribute('cy', '129');
+          dom.spLegL.setAttribute('cy', '130');
+          dom.spLegL.setAttribute('ry', '7');
+          dom.spFootL.setAttribute('cy', '136');
+        }
+      }
+
+      function calcKcal() {
+        const kg = parseFloat(dom.weightInput.value) || 60;
+        return Math.round(
+          MET_RUN * kg * (runElapsed / 3600) + MET_REST * kg * ((elapsed - runElapsed) / 3600)
+        );
+      }
+
+      function updateUI(seg) {
+        const pct = elapsed / TOTAL_DURATION;
+        dom.timeCurrent.textContent = fmt(elapsed);
+        dom.progressFill.style.width = `${pct * 100}%`;
+        if (seg.isRest) dom.overlayCountdown.textContent = fmt(seg.restSecondsLeft);
+        dom.statMin.textContent = ~~(runElapsed / 60);
+        dom.statStage.innerHTML = `${completedCycles}<span style="font-size:8px">/${NUM_CYCLES}</span>`;
+        dom.statSteps.textContent =
+          beatCount >= 1000 ? (beatCount / 1000).toFixed(1) + 'k' : beatCount;
+        dom.statKcal.textContent = calcKcal();
+        document.querySelectorAll('.seg-marker').forEach((m) => {
+          const t = (parseFloat(m.style.left) / 100) * TOTAL_DURATION;
+          if (elapsed >= t) {
+            m.classList.remove('pending');
+            m.classList.add(m.classList.contains('rest-end') ? 'rest-mark' : 'run-done');
+          }
+        });
+        dom.phaseLabel.textContent = seg.isRest
+          ? `第 ${seg.cycleIdx + 1} 輪休息`
+          : seg.cycleIdx < NUM_CYCLES
+            ? `第 ${seg.cycleIdx + 1} 輪跑步`
+            : '收尾跑步，加油！';
+        updateBackground(pct);
+        updatePlant(pct);
+      }
+
+      function showBadge(icon, name) {
+        dom.badgeIcon.textContent = icon || '🥦';
+        dom.badgeName.textContent = name;
+        dom.badgePopup.classList.add('show');
+        setTimeout(() => dom.badgePopup.classList.remove('show'), 2200);
+      }
+      function showEncourage() {
+        if (!isRunning) return;
+        dom.encourage.textContent = ENCOURAGEMENTS[~~(Math.random() * ENCOURAGEMENTS.length)];
+        dom.encourage.classList.add('show');
+        setTimeout(() => dom.encourage.classList.remove('show'), 3000);
+        encourageTimer = setTimeout(showEncourage, 45000 + Math.random() * 45000);
+      }
+
+      function lerpC(c1, c2, t) {
+        const h = (s) => [
+          parseInt(s.slice(1, 3), 16),
+          parseInt(s.slice(3, 5), 16),
+          parseInt(s.slice(5, 7), 16),
+        ];
+        const [r1, g1, b1] = h(c1),
+          [r2, g2, b2] = h(c2);
+        return `rgb(${~~(r1 + (r2 - r1) * t)},${~~(g1 + (g2 - g1) * t)},${~~(b1 + (b2 - b1) * t)})`;
+      }
+      function updateBackground(pct) {
+        let i = BG_PALETTE.length - 2;
+        for (let j = 0; j < BG_PALETTE.length - 1; j++) {
+          if (pct <= BG_PALETTE[j + 1].pct) {
+            i = j;
+            break;
+          }
+        }
+        const a = BG_PALETTE[i],
+          b = BG_PALETTE[i + 1],
+          ct = Math.max(0, Math.min(1, (pct - a.pct) / (b.pct - a.pct)));
+        dom.skyTop.setAttribute('stop-color', lerpC(a.skyTop, b.skyTop, ct));
+        dom.skyBot.setAttribute('stop-color', lerpC(a.skyBot, b.skyBot, ct));
+        dom.sun.setAttribute('fill', lerpC(a.sunColor, b.sunColor, ct));
+        dom.sun.setAttribute('cx', a.sunX + (b.sunX - a.sunX) * ct);
+        dom.sun.setAttribute('cy', a.sunY + (b.sunY - a.sunY) * ct);
+        if (pct > 0.8) dom.cloud1.setAttribute('opacity', String(0.6 * (1 - (pct - 0.8) / 0.2)));
+      }
+      function updatePlant(pct) {
+        const h = Math.min(50, pct * 125);
+        dom.stem.setAttribute('y', -h);
+        dom.stem.setAttribute('height', h + 4);
+        if (pct > 0.2) {
+          const lf = Math.min(10, ((pct - 0.2) / 0.3) * 10);
+          dom.leafL.setAttribute('rx', lf);
+          dom.leafL.setAttribute('ry', lf * 0.5);
+          dom.leafL.setAttribute('cy', -(h * 0.4));
+          dom.leafR.setAttribute('rx', lf * 0.8);
+          dom.leafR.setAttribute('ry', lf * 0.4);
+          dom.leafR.setAttribute('cy', -(h * 0.65));
+        }
+        if (pct > 0.6) {
+          const fp = Math.min(6, ((pct - 0.6) / 0.4) * 6);
+          dom.flower.setAttribute('r', fp);
+          dom.flower.setAttribute('cy', -h);
+          dom.flower.setAttribute('opacity', '.9');
+          ['petal1', 'petal2', 'petal3', 'petal4'].forEach((id, i) => {
+            const el = $(id);
+            el.setAttribute('rx', fp * 0.7);
+            el.setAttribute('ry', fp * 0.35);
+            el.setAttribute('cy', i === 0 ? -(h + fp) : i === 2 ? -(h - fp) : -h);
+            el.setAttribute('cx', i === 1 ? fp : i === 3 ? -fp : 0);
+            el.setAttribute('opacity', '.8');
+          });
+        }
+      }
+      function fmt(sec) {
+        return `${~~(sec / 60)}`.padStart(2, '0') + ':' + `${~~(sec % 60)}`.padStart(2, '0');
+      }
+
+      function finish() {
+        isRunning = false;
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        if (ytPlayer && ytReady)
+          try {
+            ytPlayer.stopVideo();
+          } catch (e) {}
+        clearTimeout(encourageTimer);
+        dom.sproutChar.classList.remove('running', 'resting');
+        dom.sproutChar.classList.add('done');
+        playTransition(false);
+        setTimeout(playChime, 600);
+        dom.finMin.textContent = ~~(runElapsed / 60);
+        dom.finStage.textContent = completedCycles;
+        dom.finSteps.textContent =
+          beatCount >= 1000 ? (beatCount / 1000).toFixed(1) + 'k' : beatCount;
+        dom.finKcal.textContent = calcKcal();
+        selectedMood = null;
+        document.querySelectorAll('.mood-btn').forEach((b) => b.classList.remove('selected'));
+        dom.moodSaved.classList.remove('show');
+        dom.finishScreen.classList.add('show');
+        dom.btnStart.textContent = '開 始';
+      }
+
+      function startMainRun() {
+        isRunning = true;
+        if (ytPlayer && ytReady)
+          try {
+            ytPlayer.seekTo(elapsed, true);
+            ytPlayer.playVideo();
+          } catch (e) {}
+        lastTimestamp = null;
+        lastBeatTime = performance.now();
+        dom.btnStart.textContent = '暫 停';
+        dom.sproutChar.classList.add('running');
+        dom.modeTag.textContent = '跑步中';
+        dom.modeTag.className = 'mode-tag';
+        isResting = false;
+        animFrameId = requestAnimationFrame(tick);
+        clearTimeout(encourageTimer);
+        encourageTimer = setTimeout(showEncourage, 25000 + Math.random() * 25000);
+      }
+
+      function startPause() {
+        if (elapsed >= TOTAL_DURATION) return;
+        if (!isRunning && elapsed === 0 && !warmupActive) {
+          startWarmup();
+          return;
+        }
+        isRunning = !isRunning;
+        if (isRunning) {
+          if (ytPlayer && ytReady)
+            try {
+              ytPlayer.seekTo(elapsed, true);
+              ytPlayer.playVideo();
+            } catch (e) {}
+          lastTimestamp = null;
+          lastBeatTime = performance.now();
+          dom.btnStart.textContent = '暫 停';
+          const seg = getSegmentInfo(elapsed);
+          if (seg.isRest) {
+            dom.sproutChar.classList.add('resting');
+            dom.rhythmOrb.classList.add('rest-mode');
+            dom.orbOverlay.classList.add('show');
+            dom.modeTag.textContent = '休息中';
+            dom.modeTag.className = 'mode-tag rest';
+          } else {
+            dom.sproutChar.classList.add('running');
+            dom.modeTag.textContent = '跑步中';
+            dom.modeTag.className = 'mode-tag';
+          }
+          isResting = seg.isRest;
+          animFrameId = requestAnimationFrame(tick);
+          clearTimeout(encourageTimer);
+          encourageTimer = setTimeout(showEncourage, 25000 + Math.random() * 25000);
+          try {
+            getAudioCtx().resume();
+          } catch (e) {}
+        } else {
+          if (ytPlayer && ytReady)
+            try {
+              ytPlayer.pauseVideo();
+            } catch (e) {}
+          cancelAnimationFrame(animFrameId);
+          clearTimeout(encourageTimer);
+          dom.btnStart.textContent = '繼 續';
+          dom.breathGuide.textContent = '暫停中';
+          dom.modeTag.textContent = '暫停';
+          dom.modeTag.className = 'mode-tag';
+          dom.sproutChar.classList.remove('running', 'resting');
+          dom.dotL.classList.remove('active-left');
+          dom.dotR.classList.remove('active-right');
+        }
+      }
+
+      function reset() {
+        isRunning = false;
+        warmupActive = false;
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        if (ytPlayer && ytReady)
+          try {
+            ytPlayer.stopVideo();
+          } catch (e) {}
+        clearTimeout(encourageTimer);
+        clearTimeout(warmupTimer);
+        clearInterval(stretchStepTimer);
+        elapsed = 0;
+        beatCount = 0;
+        runElapsed = 0;
+        breathPhase = 0;
+        breathCount = 0;
+        isResting = false;
+        completedCycles = 0;
+        leftFoot = true;
+        lastTimestamp = null;
+        noteIndex = 0;
+        dom.btnStart.textContent = '開 始';
+        dom.breathGuide.textContent = '準備開始';
+        dom.taskText.textContent = '按下開始，展開今天的旅程 🥦';
+        dom.taskLabel.className = 'task-label';
+        dom.taskLabel.textContent = '現在任務';
+        dom.phaseLabel.textContent = '待機中';
+        dom.phaseLabel.className = 'phase-label';
+        dom.modeTag.textContent = '待機';
+        dom.modeTag.className = 'mode-tag';
+        dom.statMin.textContent = '0';
+        dom.statSteps.textContent = '0';
+        dom.statKcal.textContent = '0';
+        dom.statStage.innerHTML = `0<span style="font-size:8px">/${NUM_CYCLES}</span>`;
+        dom.dotL.classList.remove('active-left');
+        dom.dotR.classList.remove('active-right');
+        dom.sproutChar.classList.remove('running', 'resting', 'warmup', 'done');
+        dom.rhythmOrb.classList.remove('rest-mode', 'warmup-mode');
+        dom.orbOverlay.classList.remove('show');
+        dom.finishScreen.classList.remove('show');
+        dom.stretchScreen.classList.remove('show');
+        dom.warmupScreen.classList.remove('show');
+        ['sp-leg-l', 'sp-leg-r'].forEach((id) => {
+          const e = $(id);
+          e.setAttribute('cy', '129');
+          e.setAttribute('ry', '6');
+        });
+        ['sp-foot-l', 'sp-foot-r'].forEach((id) => $(id).setAttribute('cy', '134'));
+        dom.stem.setAttribute('y', '-4');
+        dom.stem.setAttribute('height', '4');
+        ['leaf-l', 'leaf-r', 'flower', 'petal1', 'petal2', 'petal3', 'petal4'].forEach((id) => {
+          const el = $(id);
+          if (el) {
+            el.setAttribute('rx', '0');
+            el.setAttribute('ry', '0');
+            el.setAttribute('r', '0');
+            el.setAttribute('opacity', '0');
+          }
+        });
+        document.querySelectorAll('.seg-marker').forEach((m) => {
+          m.classList.remove('run-done', 'rest-mark');
+          m.classList.add('pending');
+        });
+        updateUI(getSegmentInfo(0));
+      }
+
+      function toggleDark() {
+        isDark = !isDark;
+        document.body.classList.toggle('dark-mode', isDark);
+        dom.darkToggle.textContent = isDark ? '☀️ 日間' : '🌙 夜間';
+      }
+
+      // 粒子
+      (function () {
+        const cols = ['#A8C4A0', '#C4A882', '#D4B870', '#7A9B76', '#C4986A'];
+        for (let i = 0; i < 10; i++) {
+          const p = document.createElement('div');
+          p.className = 'particle';
+          const sz = 3 + Math.random() * 4;
+          Object.assign(p.style, {
+            width: sz + 'px',
+            height: sz + 'px',
+            left: Math.random() * 100 + '%',
+            bottom: -sz + 'px',
+            background: cols[~~(Math.random() * cols.length)],
+            animationDuration: 15 + Math.random() * 18 + 's',
+            animationDelay: Math.random() * 12 + 's',
+          });
+          document.body.appendChild(p);
+        }
+      })();
+
+      // 星空 Canvas
+      const bgC = $('bg-canvas'),
+        bgX = bgC.getContext('2d');
+      const stars = Array.from({ length: 50 }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        r: 0.5 + Math.random() * 1.4,
+        blink: Math.random() * Math.PI * 2,
+      }));
+      (function sz() {
+        bgC.width = window.innerWidth;
+        bgC.height = window.innerHeight;
+      })();
+      window.addEventListener('resize', () => {
+        bgC.width = window.innerWidth;
+        bgC.height = window.innerHeight;
+      });
+      (function drawBg() {
+        const pct = elapsed / TOTAL_DURATION,
+          nA = Math.max(0, (pct - 0.75) / 0.25);
+        bgX.clearRect(0, 0, bgC.width, bgC.height);
+        if (nA > 0)
+          stars.forEach((s) => {
+            s.blink += 0.02;
+            const a = nA * (0.4 + 0.4 * Math.sin(s.blink));
+            bgX.beginPath();
+            bgX.arc(s.x * bgC.width, s.y * bgC.height * 0.6, s.r, 0, Math.PI * 2);
+            bgX.fillStyle = `rgba(255,240,200,${a})`;
+            bgX.fill();
+          });
+        requestAnimationFrame(drawBg);
+      })();
+
+      // 事件
+      dom.btnStart.addEventListener('click', startPause);
+      dom.btnReset.addEventListener('click', reset);
+      dom.darkToggle.addEventListener('click', toggleDark);
+      dom.btnSkipWarmup.addEventListener('click', () => {
+        clearTimeout(warmupTimer);
+        warmupActive = false;
+        dom.warmupScreen.classList.remove('show');
+        startMainRun();
+      });
+      dom.btnSkipStretch.addEventListener('click', () => {
+        clearInterval(stretchStepTimer);
+        endStretch();
+      });
+      dom.btnGoStretch.addEventListener('click', () => {
+        addRecord(
+          ~~(runElapsed / 60),
+          completedCycles,
+          beatCount >= 1000 ? (beatCount / 1000).toFixed(1) + 'k' : beatCount,
+          calcKcal(),
+          selectedMood
+        );
+        startStretch();
+      });
+      dom.btnFinish.addEventListener('click', () => {
+        addRecord(
+          ~~(runElapsed / 60),
+          completedCycles,
+          beatCount >= 1000 ? (beatCount / 1000).toFixed(1) + 'k' : beatCount,
+          calcKcal(),
+          selectedMood
+        );
+        reset();
+      });
+      dom.btnShowHistory.addEventListener('click', () => {
+        renderHistory();
+        dom.historyScreen.classList.add('show');
+      });
+      dom.btnCloseHistory.addEventListener('click', () =>
+        dom.historyScreen.classList.remove('show')
+      );
+      dom.btnClearHistory.addEventListener('click', () =>
+        window.open(
+          'https://docs.google.com/spreadsheets/d/1-ONL-tcW5JWOa_xOSvD9UUViFXLuwwZEh_OAOdjgax0/edit?gid=0#gid=0',
+          '_blank'
+        )
+      );
+      dom.moodOptions.addEventListener('click', (e) => {
+        const btn = e.target.closest('.mood-btn');
+        if (!btn) return;
+        document.querySelectorAll('.mood-btn').forEach((b) => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedMood = btn.dataset.mood;
+        dom.moodSaved.classList.add('show');
+        updateMoodInSheet(selectedMood);
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          startPause();
+        }
+      });
+
+      updateUI(getSegmentInfo(0));
+    </script>
+  </body>
+</html>
